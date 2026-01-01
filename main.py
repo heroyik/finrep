@@ -11,6 +11,7 @@ load_dotenv()
 
 TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL"]
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
+KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
 
 def fetch_and_analyze(ticker_symbol):
@@ -66,6 +67,7 @@ def get_access_token():
     data = {
         "grant_type": "refresh_token",
         "client_id": KAKAO_REST_API_KEY,
+        "client_secret": KAKAO_CLIENT_SECRET,
         "refresh_token": KAKAO_REFRESH_TOKEN
     }
     response = requests.post(url, data=data)
