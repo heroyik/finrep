@@ -159,16 +159,24 @@ def generate_chart(symbol, df, filename):
     # 공백 데이터 제거
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정 (legend용 label 추가)
+    # EMA 선 설정 (label 추가)
     apds = [
-        mpf.make_addplot(plot_df['EMA20'], color='red', width=0.8, label='EMA 20'),
-        mpf.make_addplot(plot_df['EMA60'], color='cyan', width=0.8, label='EMA 60'),
-        mpf.make_addplot(plot_df['EMA120'], color='lime', width=0.8, label='EMA 120'),
-        mpf.make_addplot(plot_df['RSI'], panel=1, color='black', width=0.8, secondary_y=False)
+        mpf.make_addplot(plot_df['EMA20'], color='#f43f5e', width=1.0, label='EMA 20'),
+        mpf.make_addplot(plot_df['EMA60'], color='#38bdf8', width=1.0, label='EMA 60'),
+        mpf.make_addplot(plot_df['EMA120'], color='#10b981', width=1.0, label='EMA 120'),
+        mpf.make_addplot(plot_df['RSI'], panel=1, color='#475569', width=1.0, secondary_y=False)
     ]
     
-    # 스타일 설정
-    style = mpf.make_mpf_style(base_mpf_style='charles', gridstyle='', facecolor='white', edgecolor='black')
+    # 미니멀 스타일 설정
+    mc = mpf.make_marketcolors(up='#10b981', down='#f43f5e', edge='inherit', wick='inherit', volume='inherit')
+    style = mpf.make_mpf_style(
+        marketcolors=mc, 
+        gridstyle=':', 
+        gridcolor='#f1f5f9',
+        facecolor='white', 
+        edgecolor='#cbd5e1',
+        rc={'font.family': 'sans-serif', 'font.size': 8}
+    )
     
     # 차트 폴더 생성
     if not os.path.exists("public/charts"):
@@ -177,30 +185,42 @@ def generate_chart(symbol, df, filename):
     # 차트 저장
     full_path = os.path.join("public/charts", filename)
     
+    # tight_layout 대신 subplots_adjust를 위해 False로 설정할 수도 있으나, 
+    # mplfinance의 scale_padding과 ylabel 설정을 우선 활용
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
         addplot=apds,
         volume=False,
-        figratio=(12, 8),
+        figratio=(12, 7),
         style=style,
         returnfig=True,
-        panel_ratios=(2, 1), # 메인 차트와 RSI 비율
-        tight_layout=True
+        panel_ratios=(2, 1),
+        tight_layout=False, # 수동 조절을 위해 False
+        ylabel='', # 왼쪽 라벨 제거
+        ylabel_lower='' # 하단 패널 왼쪽 라벨 제거
     )
     
-    # Legend 추가 (EMA)
-    axes[0].legend(loc='upper left', fontsize=8)
+    # 여백 미세 조정: 왼쪽 줄이고 오른쪽 늘림 (숫자 잘림 방지)
+    plt.subplots_adjust(left=0.02, right=0.92, top=0.98, bottom=0.1)
     
-    # RSI Thresholds (30, 70) 수평선 추가
-    axes[2].axhline(y=70, color='red', linestyle='--', linewidth=0.7, alpha=0.5)
-    axes[2].axhline(y=30, color='green', linestyle='--', linewidth=0.7, alpha=0.5)
+    # Legend 설정 (심플하게)
+    axes[0].legend(loc='upper left', fontsize=7, frameon=False)
     
-    # 제목 제거 (사용자 요청: 글자가 다 안보임)
-    axes[0].set_title("")
-    axes[2].set_ylabel('RSI', fontsize=10)
+    # RSI 수평선 (Overbought/Oversold)
+    axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.4)
+    axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.4)
     
-    plt.savefig(full_path, dpi=120)
+    # 불필요한 레이블 제거
+    axes[0].set_ylabel('')
+    axes[2].set_ylabel('')
+    
+    # 오른쪽 축 폰트 크기 조정
+    for ax in axes:
+        ax.tick_params(axis='y', labelsize=7)
+        ax.tick_params(axis='x', labelsize=7)
+    
+    plt.savefig(full_path, dpi=150) # 해상도 약간 상향
     plt.close()
 
 def get_access_token():
