@@ -1,0 +1,294 @@
+
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Stock Briefing - 2026-01-01</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                --card-bg: rgba(255, 255, 255, 0.05);
+                --accent-blue: #38bdf8;
+                --accent-green: #10b981;
+                --accent-red: #f43f5e;
+                --text-main: #f8fafc;
+                --text-dim: #94a3b8;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--bg-gradient);
+                color: var(--text-main);
+                margin: 0;
+                padding: 40px 20px;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                max-width: 800px;
+                width: 100%;
+            }
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+            h1 {
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 10px;
+                background: linear-gradient(to right, #38bdf8, #818cf8);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .date {
+                color: var(--text-dim);
+                font-size: 1rem;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+            }
+            .card {
+                background: var(--card-bg);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 24px;
+                transition: transform 0.3s ease, border-color 0.3s ease;
+            }
+            .card:hover {
+                transform: translateY(-5px);
+                border-color: var(--accent-blue);
+            }
+            .symbol {
+                font-size: 1.5rem;
+                font-weight: 800;
+                margin-bottom: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .price {
+                font-size: 2rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            .change {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 20px;
+            }
+            .up { color: var(--accent-green); }
+            .down { color: var(--accent-red); }
+            .indicators {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 16px;
+            }
+            .indicator-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .label {
+                font-size: 0.75rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 4px;
+            }
+            .value {
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            footer {
+                margin-top: 60px;
+                text-align: center;
+                color: var(--text-dim);
+                font-size: 0.875rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Daily Stock Briefing</h1>
+                <p class="date">Updated at: 2026-01-01 13:27:50 KST</p>
+            </header>
+            <div class="grid">
+    
+                <div class="card">
+                    <div class="symbol">
+                        BITU
+                        <span class="down">📉</span>
+                    </div>
+                    <div class="price">$22.09</div>
+                    <div class="change down">-0.85%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">41.52</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">23.13</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">28.34</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">32.26</span>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="symbol">
+                        ORCX
+                        <span class="down">📉</span>
+                    </div>
+                    <div class="price">$17.23</div>
+                    <div class="change down">-2.32%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">40.03</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">18.57</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">24.62</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">26.73</span>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="symbol">
+                        PLTG
+                        <span class="down">📉</span>
+                    </div>
+                    <div class="price">$26.17</div>
+                    <div class="change down">-3.68%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">42.78</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">28.53</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">28.03</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">26.02</span>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="symbol">
+                        CRWU
+                        <span class="down">📉</span>
+                    </div>
+                    <div class="price">$5.03</div>
+                    <div class="change down">-6.68%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">37.4</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">6.45</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">10.1</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">N/A</span>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="symbol">
+                        CCUP
+                        <span class="down">📉</span>
+                    </div>
+                    <div class="price">$4.34</div>
+                    <div class="change down">-1.59%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">39.58</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">4.95</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">7.94</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">N/A</span>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="symbol">
+                        OKLL
+                        <span class="up">📈</span>
+                    </div>
+                    <div class="price">$16.77</div>
+                    <div class="change up">+0.06%</div>
+                    <div class="indicators">
+                        <div class="indicator-item">
+                            <span class="label">RSI(14)</span>
+                            <span class="value">33.28</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(20)</span>
+                            <span class="value">25.35</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(60)</span>
+                            <span class="value">39.51</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="label">EMA(120)</span>
+                            <span class="value">41.93</span>
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+            <footer>
+                <p>Data provided by Yahoo Finance & Automated by Antigravity</p>
+            </footer>
+        </div>
+    </body>
+    </html>
+    
