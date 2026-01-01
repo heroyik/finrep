@@ -159,13 +159,24 @@ def generate_chart(symbol, df, filename):
     # 공백 데이터 제거
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정 (가독성 높은 색상 선택: 오렌지, 보라, 진회색)
-    apds = [
-        mpf.make_addplot(plot_df['EMA20'], color='#f59e0b', width=1.2, label='EMA 20'),
-        mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'),
-        mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'),
-        mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False)
-    ]
+    # EMA 선 설정 (데이터가 존재하는 경우에만 추가)
+    apds = []
+    
+    # EMA 20
+    if 'EMA20' in plot_df.columns and not plot_df['EMA20'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA20'], color='#f59e0b', width=1.2, label='EMA 20'))
+        
+    # EMA 60
+    if 'EMA60' in plot_df.columns and not plot_df['EMA60'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'))
+        
+    # EMA 120 (상장 초기 종목 등 데이터 부족 시 제외)
+    if 'EMA120' in plot_df.columns and not plot_df['EMA120'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'))
+        
+    # RSI
+    if 'RSI' in plot_df.columns and not plot_df['RSI'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False))
     
     # 미니멀 스타일 설정
     mc = mpf.make_marketcolors(up='#10b981', down='#f43f5e', edge='inherit', wick='inherit', volume='inherit')
@@ -451,7 +462,7 @@ def generate_html_report(results):
     <body>
         <div class="container">
             <header>
-                <h1>Daily Stock Briefing</h1>
+                <h1>Daily US Stock Briefing</h1>
                 <p class="date">Updated at: {date_str}</p>
             </header>
             <div class="grid">
