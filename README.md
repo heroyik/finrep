@@ -12,7 +12,9 @@ FinRep is an automated system that fetches daily closing prices and technical in
   - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.
 - **Visualized Report**: Generates a sleek, dark-themed HTML report (Fully English) hosted on GitHub Pages with **KST Timezone** support.
 - **KakaoTalk Integration**: Sends a summary message with a direct "View Report" button via KakaoTalk.
-- **Full Automation**: Scheduled execution every day at 7:00 AM KST using GitHub Actions.
+- **Smart Scheduling**:
+  - **Holiday Detection**: Automatically checks US market status (SPY chart) and skips generation on holidays or weekends.
+  - **Daily Automation**: Runs every day at 7:00 AM KST via GitHub Actions.
 
 ## 🔗 Live Report
 
@@ -22,7 +24,7 @@ The latest briefing is always available at:
 ## 🛠 Tech Stack
 
 - **Language**: Python 3.13
-- **Libraries**: `yfinance` (Data), `pandas-ta` (Analysis), `mplfinance` (Charting), `requests` (News & API)
+- **Libraries**: `yfinance`, `pandas`, `pandas_ta`, `mplfinance`, `requests`
 - **Infrastructure**: GitHub Actions, GitHub Pages (Deployed from `gh-pages` branch)
 - **API**: Kakao Developers (OAuth 2.0 Message API)
 
