@@ -6,6 +6,11 @@ import os
 import mplfinance as mpf
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta, timezone
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    # Python 3.9 미만 호환성 (하지만 3.13 사용중이므로 문제없음)
+    from datetime import timezone as ZoneInfo
 import json
 from dotenv import load_dotenv
 
@@ -285,6 +290,47 @@ def get_access_token():
         return tokens["access_token"]
     else:
         raise Exception(f"Error refreshing token: {tokens}")
+
+
+def check_market_status():
+    """
+    SPY(S&P 500 ETF)의 마지막 거래일을 확인하여
+    전일 미국 증시가 휴장이었는지 판단.
+    """
+    try:
+        # 1. 현재 미국 동부 시간 (New York) 확인
+        # Github Actions는 KST 07:00에 실행됨 -> 미국은 전날 17:00/18:00 (장 마감 후)
+        # 따라서 "미국 현지 날짜"가 "마지막 거래일"과 같은지 확인하면 됨.
+        ny_tz = ZoneInfo("America/New_York")
+        now_ny = datetime.now(ny_tz)
+        target_date_str = now_ny.strftime('%Y-%m-%d')
+        print(f"Checking market status for US Date: {target_date_str}")
+
+        # 2. SPY 데이터 조회 (최근 5일치)
+        spy = yf.Ticker("SPY")
+        hist = spy.history(period="5d")
+        
+        if hist.empty:
+            print("❌ Critical: Unable to fetch SPY data for market check.")
+            return False # 안전하게 진행 (혹은 중단 결정 필요)
+
+        last_date = hist.index[-1].date()
+        last_date_str = last_date.strftime('%Y-%m-%d')
+        print(f"Latest market data available: {last_date_str}")
+
+        # 3. 휴장 여부 판단
+        if last_date_str != target_date_str:
+            print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {last_date_str})")
+            return False
+        
+        print("✅ Market was OPEN.")
+        return True
+
+    except Exception as e:
+        print(f"Warning: Market status check failed: {e}")
+        # 체크 실패 시 일단 진행 (안전장치)
+        return True
+
 
 
 def generate_html_report(results):
@@ -776,6 +822,11 @@ def send_kakao_link(briefing_url):
         raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
+    # 휴장일 체크
+    if not check_market_status():
+        print("Main: Skipping briefing generation because the market was closed.")
+        exit(0)
+
     report_data = []
     for ticker in TICKERS:
         print(f"Analyzing {ticker}...")
