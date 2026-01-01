@@ -576,60 +576,60 @@ def generate_html_report(results):
             <!-- Signal Dashboard -->
             <div class="dashboard">
                 <div class="dash-grid">
-                    <!-- 1차 매수 -->
-                    <div class="dash-item">
-                        <div class="dash-title">Bullish Setup (1st Buy)</div>
-                        <div class="ticker-badges">
     """
     
     # Dashboard Content Logic
     valid_results = [r for r in results if not isinstance(r, str)]
-    
-    # 1. 1st Buy List
     buy1_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Buy1']]
+    buy2_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Buy2']]
+    sell1_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Sell1']]
+
+    # 1. 1st Buy List
     if buy1_tickers:
+        html_template += """
+                    <!-- 1차 매수 -->
+                    <div class="dash-item">
+                        <div class="dash-title">Bullish Setup (1st Buy)</div>
+                        <div class="ticker-badges">
+        """
         for t in buy1_tickers:
             html_template += f'<div class="badge buy">{t}</div>'
-    else:
-        html_template += '<div class="badge empty">-</div>'
-        
-    html_template += """
+        html_template += """
                         </div>
                     </div>
+        """
+
+    # 2. 2nd Buy List
+    if buy2_tickers:
+        html_template += """
                     <!-- 2차 매수 -->
                     <div class="dash-item">
                         <div class="dash-title">Oversold & Bullish (2nd Buy)</div>
                         <div class="ticker-badges">
-    """
-    
-    # 2. 2nd Buy List
-    buy2_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Buy2']]
-    if buy2_tickers:
+        """
         for t in buy2_tickers:
             html_template += f'<div class="badge buy">{t}</div>'
-    else:
-        html_template += '<div class="badge empty">-</div>'
-
-    html_template += """
+        html_template += """
                         </div>
                     </div>
+        """
+    
+    # 3. Sell List
+    if sell1_tickers:
+        html_template += """
                     <!-- 1차 매도 -->
                     <div class="dash-item">
                         <div class="dash-title">Overbought & Peak (Sell)</div>
                         <div class="ticker-badges">
-    """
-    
-    # 3. Sell List
-    sell1_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Sell1']]
-    if sell1_tickers:
+        """
         for t in sell1_tickers:
             html_template += f'<div class="badge sell">{t}</div>'
-    else:
-        html_template += '<div class="badge empty">-</div>'
-        
-    html_template += """
+        html_template += """
                         </div>
                     </div>
+        """
+
+    html_template += """
                 </div>
                 <div class="strategy-legend">
                     <div class="strategy-row"><strong>1차 매수:</strong> EMA(20) < EMA(60) < EMA(120) (역배열/저점구간)</div>
