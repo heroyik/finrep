@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Stock Briefing - 2026-01-02</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             :root {
                 --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -15,6 +15,10 @@
                 --accent-red: #f43f5e;
                 --text-main: #f8fafc;
                 --text-dim: #94a3b8;
+                --buy-bg: rgba(16, 185, 129, 0.15);
+                --buy-text: #34d399;
+                --sell-bg: rgba(244, 63, 94, 0.15);
+                --sell-text: #fb7185;
             }
             body {
                 font-family: 'Inter', sans-serif;
@@ -47,6 +51,65 @@
                 color: var(--text-dim);
                 font-size: 1rem;
             }
+            
+            /* Dashboard Section */
+            .dashboard {
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 40px;
+            }
+            .dash-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+            .dash-item {
+                background: var(--card-bg);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .dash-title {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: var(--text-dim);
+                margin-bottom: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .ticker-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+            .badge {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }
+            .badge.buy { background: var(--buy-bg); color: var(--buy-text); border: 1px solid var(--buy-text); }
+            .badge.sell { background: var(--sell-bg); color: var(--sell-text); border: 1px solid var(--sell-text); }
+            .badge.empty { background: rgba(255,255,255,0.05); color: var(--text-dim); font-weight: 400; }
+            
+            .strategy-legend {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+                line-height: 1.6;
+            }
+            .strategy-legend strong { color: var(--text-main); margin-right: 4px; }
+            .strategy-row { margin-bottom: 4px; }
+
+            /* Stock Cards */
             .grid {
                 display: flex;
                 flex-direction: column;
@@ -73,10 +136,22 @@
                 display: flex;
                 flex-direction: column;
             }
+            .symbol-row {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
             .symbol {
                 font-size: 2rem;
                 font-weight: 800;
-                margin-bottom: 4px;
+                line-height: 1;
+            }
+            .symbol-desc {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                font-weight: 400;
+                line-height: 1;
             }
             .price-section {
                 display: flex;
@@ -105,16 +180,14 @@
             .down { color: var(--accent-red); }
             .chart-box {
                 margin: 20px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 12px;
                 overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.1);
                 background: white;
                 cursor: zoom-in;
-                transition: transform 0.3s ease;
             }
             .chart-box img {
                 width: 100%;
-                height: auto;
                 display: block;
             }
             
@@ -161,7 +234,7 @@
                 font-weight: 400;
             }
 
-            /* Modal / Zoom 스타일 */
+            /* Modal */
             .modal {
                 display: none;
                 position: fixed;
@@ -171,7 +244,7 @@
                 width: 100%;
                 height: 100%;
                 background-color: rgba(0,0,0,0.95);
-                padding: 10px;
+                padding: 20px;
                 box-sizing: border-box;
                 justify-content: center;
                 align-items: center;
@@ -180,7 +253,6 @@
                 max-width: 100%;
                 max-height: 100%;
                 border-radius: 8px;
-                box-shadow: 0 0 30px rgba(0,0,0,0.5);
                 object-fit: contain;
             }
 
@@ -191,11 +263,10 @@
                 font-size: 0.875rem;
             }
             @media (max-width: 600px) {
-                .price-section {
-                    gap: 15px;
-                }
-                .price-value {
-                    font-size: 1.5rem;
+                .symbol-desc {
+                    display: block;
+                    width: 100%;
+                    margin-top: 4px;
                 }
             }
         </style>
@@ -203,15 +274,51 @@
     <body>
         <div class="container">
             <header>
-                <h1>Daily US Stock Briefing</h1>
-                <p class="date">Updated at: 2026-01-02 00:10:04 KST</p>
+                <h1>Daily Stock Briefing</h1>
+                <p class="date">Updated at: 2026-01-02 00:30:57 KST</p>
             </header>
+            
+            <!-- Signal Dashboard -->
+            <div class="dashboard">
+                <div class="dash-grid">
+                    <!-- 1차 매수 -->
+                    <div class="dash-item">
+                        <div class="dash-title">Bullish Setup (1st Buy)</div>
+                        <div class="ticker-badges">
+    <div class="badge buy">BITU</div><div class="badge buy">ORCX</div><div class="badge buy">OKLL</div>
+                        </div>
+                    </div>
+                    <!-- 2차 매수 -->
+                    <div class="dash-item">
+                        <div class="dash-title">Oversold & Bullish (2nd Buy)</div>
+                        <div class="ticker-badges">
+    <div class="badge empty">-</div>
+                        </div>
+                    </div>
+                    <!-- 1차 매도 -->
+                    <div class="dash-item">
+                        <div class="dash-title">Overbought & Peak (Sell)</div>
+                        <div class="ticker-badges">
+    <div class="badge empty">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="strategy-legend">
+                    <div class="strategy-row"><strong>1차 매수:</strong> EMA(20) < EMA(60) < EMA(120) (역배열/저점구간)</div>
+                    <div class="strategy-row"><strong>2차 매수:</strong> 1차 매수 조건 충족 + RSI(14) < 30 (과매도 심화)</div>
+                    <div class="strategy-row"><strong>1차 매도:</strong> EMA(20) > EMA(60) > EMA(120) + RSI(14) > 70 (정배열 과열)</div>
+                </div>
+            </div>
+
             <div class="grid">
     
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">BITU</div>
+                            <div class="symbol-row">
+                                <span class="symbol">BITU</span>
+                                <span class="symbol-desc">(Proshares Ultra Bitcoin ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -238,7 +345,7 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
                             <div class="news-item">
                                 <a href="https://finance.yahoo.com/news/trump-20-stocks-soar-again-gold-hits-records-ai-boom-rolls-on--yahoo-finances-2025-year-in-review-110012895.html" target="_blank" class="news-link">Trump 2.0, stocks soar again, gold hits records, AI boom rolls on — Yahoo Finance's 2025 year in review</a>
                                 <span class="news-source">Source: Market News</span>
@@ -250,7 +357,7 @@
                             </div>
             
                             <div class="news-item">
-                                <a href="https://beincrypto.com/hbar-price-forms-double-top/" target="_blank" class="news-link">HBAR Price Forms Double Top, Faces A Minor Crash; Can Bitcoin Save It?</a>
+                                <a href="https://www.ccn.com/news/crypto/bitcoin-yearly-return-post-halving-negative-first-time-4-year-cycle/" target="_blank" class="news-link">Bitcoin Records First-Ever Negative Post-Halving Year — Is the 4-Year Cycle Over?</a>
                                 <span class="news-source">Source: Market News</span>
                             </div>
             
@@ -261,7 +368,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">ORCX</div>
+                            <div class="symbol-row">
+                                <span class="symbol">ORCX</span>
+                                <span class="symbol-desc">(Defiance Daily Target 2X Long ORCL ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -288,7 +398,7 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
                             <div class="news-item">
                                 <a href="https://finance.yahoo.com/video/worlds-richest-people-ai-shaking-130040174.html" target="_blank" class="news-link">World's richest people: How AI is shaking up the rankings</a>
                                 <span class="news-source">Source: Market News</span>
@@ -311,7 +421,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">PLTG</div>
+                            <div class="symbol-row">
+                                <span class="symbol">PLTG</span>
+                                <span class="symbol-desc">(Leverage Shares 2X Long PLTR Daily ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -338,7 +451,7 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
                             <div class="news-item">
                                 <a href="https://www.fool.com/investing/2026/01/01/this-artificial-intelligence-stock-could-be-the-bi/" target="_blank" class="news-link">This Artificial Intelligence Stock Could Be the Biggest Bargain Buy of 2026</a>
                                 <span class="news-source">Source: Market News</span>
@@ -361,7 +474,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">CRWU</div>
+                            <div class="symbol-row">
+                                <span class="symbol">CRWU</span>
+                                <span class="symbol-desc">(T-REX 2X Long CRWV Daily Target ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -388,7 +504,7 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
                             <div class="news-item">
                                 <a href="https://www.fool.com/investing/2026/01/01/high-conviction-ai-stocks-with-10x-potential-2036/" target="_blank" class="news-link">3 High-Conviction AI Stocks With 10x Potential by 2036</a>
                                 <span class="news-source">Source: Market News</span>
@@ -411,7 +527,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">CCUP</div>
+                            <div class="symbol-row">
+                                <span class="symbol">CCUP</span>
+                                <span class="symbol-desc">(T-REX 2X Long CRCL Daily Target ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -438,7 +557,7 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
                             <div class="news-item">
                                 <a href="https://finance.yahoo.com/news/us-high-growth-tech-stocks-113807074.html" target="_blank" class="news-link">US High Growth Tech Stocks to Watch</a>
                                 <span class="news-source">Source: Market News</span>
@@ -461,7 +580,10 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="symbol-box">
-                            <div class="symbol">OKLL</div>
+                            <div class="symbol-row">
+                                <span class="symbol">OKLL</span>
+                                <span class="symbol-desc">(Defiance Daily Target 2X Long OKLO ETF)</span>
+                            </div>
                         </div>
                         <div class="price-section">
                             <div class="price-item">
@@ -488,19 +610,19 @@
                             <span>📰</span> Related News & Market Insights
                         </div>
                         <div class="news-list">
-    
+        
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/nuscale-power-the-nuclear-stock-everyones-watching/" target="_blank" class="news-link">NuScale Power: The Nuclear Stock Everyone's Watching</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/better-energy-stock-to-own-in-2026-bloom-energy/" target="_blank" class="news-link">Better Energy Stock to Own in 2026: Bloom Energy or Oklo?</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
                             <div class="news-item">
                                 <a href="https://finance.yahoo.com/news/seaport-research-bases-oklo-oklo-163348034.html" target="_blank" class="news-link">Seaport Research Bases New Oklo (OKLO) Valuation on $1.59B 2032 EBITDA Projection</a>
-                                <span class="news-source">Source: Market News</span>
-                            </div>
-            
-                            <div class="news-item">
-                                <a href="https://finance.yahoo.com/news/cathie-wood-ark-investment-acquires-101845469.html" target="_blank" class="news-link">Cathie Wood’s ARK Investment Acquires Stake in OKLO</a>
-                                <span class="news-source">Source: Market News</span>
-                            </div>
-            
-                            <div class="news-item">
-                                <a href="https://www.investors.com/news/nuclear-ai-demand-fuels-rosy-outlook-for-uranium-producer/?src=A00220&yptr=yahoo" target="_blank" class="news-link">This Company Just Announced Long-Term Contracts For Nuclear Power Amid Rosy Outlook For This Commodity</a>
                                 <span class="news-source">Source: Market News</span>
                             </div>
             
@@ -514,7 +636,6 @@
             </footer>
         </div>
 
-        <!-- 이미지 확대 모달 -->
         <div id="modal" class="modal" onclick="closeModal()">
             <img class="modal-content" id="modalImg">
         </div>
