@@ -5,7 +5,8 @@ import requests
 import os
 import mplfinance as mpf
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import json
 from dotenv import load_dotenv
 
 # 환경 변수 로드 (로컬 테스트용)
@@ -125,9 +126,170 @@ def fetch_and_analyze(ticker_symbol):
     except Exception as e:
         return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
 
+def fetch_news(ticker_symbol):
+    underlying = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
+    try:
+        t = yf.Ticker(underlying)
+        news_list = t.news
+        filtered_news = []
+        
+        if not news_list:
+            return []
+
+        for n in news_list:
+            # yfinance news 구조 대응 (데이터가 'content' 필드 내부에 있음)
+            content = n.get('content', n) 
+            title = content.get('title')
+            
+            # publisher 확인
+            provider = content.get('provider', {})
+            publisher = provider.get('name', content.get('publisher', 'Unknown'))
+            
+            # link 확인 (canonicalUrl or clickThroughUrl)
+            link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+            link = link_obj.get('url', content.get('link'))
+            
+            if not title or not link or title == "None": continue
+            
+            if any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS):
+                filtered_news.append({
+                    "title": title,
+                    "publisher": publisher,
+                    "link": link
+                })
+            
+            if len(filtered_news) >= 3:
+                break
+        
+        # 필터링된 뉴스가 부족하면 상위 뉴스 그냥 노출 (백업)
+        if len(filtered_news) < 3:
+            for n in news_list:
+                content = n.get('content', n)
+                title = content.get('title')
+                provider = content.get('provider', {})
+                publisher = provider.get('name', content.get('publisher', 'Market News'))
+                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+                link = link_obj.get('url', content.get('link'))
+                
+                if not title or not link or title == "None": continue
+                
+                if title not in [fn['title'] for fn in filtered_news]:
+                    filtered_news.append({
+                        "title": title,
+                        "publisher": publisher,
+                        "link": link
+                    })
+                if len(filtered_news) >= 3:
+                    break
+                    
+        return filtered_news
+    except Exception as e:
+        print(f"Error fetching news for {underlying}: {e}")
+        return []
+
+def generate_chart(symbol, df, filename):
+    # 최근 60영업일 데이터만 사용 (차트 가독성)
+    plot_df = df.tail(60).copy()
+    
+    # 공백 데이터 제거
+    plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
+    
+    # EMA 선 설정 (데이터가 존재하는 경우에만 추가)
+    apds = []
+    
+    # EMA 20
+    if 'EMA20' in plot_df.columns and not plot_df['EMA20'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA20'], color='#f59e0b', width=1.2, label='EMA 20'))
+        
+    # EMA 60
+    if 'EMA60' in plot_df.columns and not plot_df['EMA60'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'))
+        
+    # EMA 120 (상장 초기 종목 등 데이터 부족 시 제외)
+    if 'EMA120' in plot_df.columns and not plot_df['EMA120'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'))
+        
+    # RSI
+    if 'RSI' in plot_df.columns and not plot_df['RSI'].isnull().all():
+        apds.append(mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False))
+    
+    # 미니멀 스타일 설정
+    mc = mpf.make_marketcolors(up='#10b981', down='#f43f5e', edge='inherit', wick='inherit', volume='inherit')
+    style = mpf.make_mpf_style(
+        marketcolors=mc, 
+        gridstyle=':', 
+        gridcolor='#f1f5f9',
+        facecolor='white', 
+        edgecolor='#cbd5e1',
+        rc={'font.family': 'sans-serif', 'font.size': 6.5}
+    )
+    
+    # 차트 폴더 생성
+    if not os.path.exists("public/charts"):
+        os.makedirs("public/charts")
+    
+    # 차트 저장
+    full_path = os.path.join("public/charts", filename)
+    
+    # 여백을 넉넉하게 설정하여 차트 본문(박스)을 정중앙에 배치
+    fig, axes = mpf.plot(
+        plot_df,
+        type='candle',
+        addplot=apds,
+        volume=False,
+        figratio=(12, 8), # 가로세로 비율 조정
+        style=style,
+        returnfig=True,
+        panel_ratios=(2, 1),
+        tight_layout=False,
+        ylabel='',
+        ylabel_lower=''
+    )
+    
+    # 사용자 피드백 반영: 왼쪽 여백을 오렌지 가이드라인에 맞춰 축소 (0.2 -> 0.12)
+    # 우측 여백은 유지 (right=0.8)
+    # 상하 여백은 기존 유지 (top=0.8, bottom=0.2)
+    plt.subplots_adjust(left=0.12, right=0.8, top=0.8, bottom=0.2)
+    
+    # Legend 설정 (심플하게)
+    axes[0].legend(loc='upper left', fontsize=6, frameon=False)
+    
+    # RSI 수평선
+    axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
+    axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
+    
+    # 축 설정 정리
+    axes[0].set_ylabel('')
+    axes[2].set_ylabel('')
+    
+    # 폰트 및 틱 설정 (숫자가 차트 박스 밖으로 여유 있게 나오도록 pad 조정)
+    for ax in axes:
+        ax.tick_params(axis='y', labelsize=6, pad=5)
+        ax.tick_params(axis='x', labelsize=6, pad=5)
+    
+    plt.savefig(full_path, dpi=160)
+    plt.close()
+
+def get_access_token():
+    """Refresh Token을 이용해 새로운 Access Token 발급"""
+    url = "https://kauth.kakao.com/oauth/token"
+    data = {
+        "grant_type": "refresh_token",
+        "client_id": KAKAO_REST_API_KEY,
+        "client_secret": KAKAO_CLIENT_SECRET,
+        "refresh_token": KAKAO_REFRESH_TOKEN
+    }
+    response = requests.post(url, data=data)
+    tokens = response.json()
+    if "access_token" in tokens:
+        return tokens["access_token"]
+    else:
+        raise Exception(f"Error refreshing token: {tokens}")
+
+
 def generate_html_report(results):
     # KST 시간 설정 (UTC+9)
-    now_utc = datetime.utcnow()
+    now_utc = datetime.now(timezone.utc)
     now_kst = now_utc + timedelta(hours=9)
     date_str = now_kst.strftime('%Y-%m-%d %H:%M:%S KST')
     
@@ -589,7 +751,7 @@ def send_kakao_link(briefing_url):
 
     # 이미지 URL 및 템플릿 최적화
     # 가장 단순하고 확실한 'text' 템플릿으로 변경하여 버튼 활성화 테스트
-    now_kst = datetime.utcnow() + timedelta(hours=9)
+    now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
     k_date = now_kst.strftime('%Y-%m-%d')
     
     template_object = {
