@@ -236,10 +236,14 @@ def generate_html_report(results):
     </body>
     </html>
     """
+    # 'public' 폴더 생성 및 리포트 저장
+    if not os.path.exists("public"):
+        os.makedirs("public")
     
-    with open("index.html", "w", encoding="utf-8") as f:
+    report_path = os.path.join("public", "index.html")
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_template)
-    print("HTML report generated: index.html")
+    print(f"HTML report generated: {report_path}")
 
 def send_kakao_link(briefing_url):
     if not KAKAO_REST_API_KEY or not KAKAO_REFRESH_TOKEN:
@@ -253,12 +257,15 @@ def send_kakao_link(briefing_url):
         "Authorization": f"Bearer {access_token}"
     }
 
+    # 이미지 URL 및 템플릿 최적화
     template_object = {
         "object_type": "feed",
         "content": {
             "title": "📊 오늘의 미국 증시 브리핑",
-            "description": f"{datetime.now().strftime('%Y-%m-%d')} 주요 ETF 분석 리포트가 완성되었습니다.",
-            "image_url": "https://images.unsplash.com/photo-1611974717483-939e68d06746?q=80&w=200&h=200&auto=format&fit=crop",
+            "description": f"{datetime.now().strftime('%Y-%m-%d')} 주요 ETF 분석 리포트",
+            "image_url": "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbcXkP2%2FbtsGSczC8Vw%2FkUKf6k6k6k6k6k6k6k6k6k%2Fimg.png", # 깨지지 않는 기본 이미지 예시
+            "image_width": 640,
+            "image_height": 360,
             "link": {
                 "web_url": briefing_url,
                 "mobile_web_url": briefing_url
@@ -284,7 +291,7 @@ def send_kakao_link(briefing_url):
         print("KakaoTalk link sent successfully!")
     else:
         print(f"Failed to send KakaoTalk link: {response.status_code} - {response.text}")
-        raise Exception("Kakao API Error")
+        raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
     report_data = []
