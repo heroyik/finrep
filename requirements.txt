@@ -3,3 +3,5 @@ pandas
 pandas-ta
 requests
 python-dotenv
+mplfinance
+matplotlib

@@ -3,6 +3,8 @@ import pandas as pd
 import pandas_ta as ta
 import requests
 import os
+import mplfinance as mpf
+import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -22,28 +24,94 @@ def fetch_and_analyze(ticker_symbol):
         if df.empty:
             return f"❌ {ticker_symbol}: 데이터를 가져올 수 없습니다."
 
+        # 지표 계산
         df['RSI'] = ta.rsi(df['Close'], length=14)
         df['EMA20'] = ta.ema(df['Close'], length=20)
         df['EMA60'] = ta.ema(df['Close'], length=60)
         df['EMA120'] = ta.ema(df['Close'], length=120)
 
+        # 종가 정보
         last_row = df.iloc[-1]
         prev_close = df.iloc[-2]['Close']
         current_close = last_row['Close']
         change_pct = ((current_close - prev_close) / prev_close) * 100
 
+        # 시간외 정보 (yfinance의 fast_info 또는 info 사용)
+        after_hours_price = None
+        after_hours_change = None
+        try:
+            # info 대신 fast_info 또는 직접 긁어오기 (yfinance는 시간외 데이터가 불안정할 수 있음)
+            # 여기서는 info['postMarketPrice'] 시도
+            info = ticker.info
+            after_hours_price = info.get('postMarketPrice')
+            if after_hours_price:
+                after_hours_change = ((after_hours_price - current_close) / current_close) * 100
+        except:
+            pass
+
+        # 차트 생성
+        chart_filename = f"{ticker_symbol}_chart.png"
+        generate_chart(ticker_symbol, df, chart_filename)
+
         result = {
             "Symbol": ticker_symbol,
             "Price": round(current_close, 2),
             "Change": round(change_pct, 2),
+            "AfterPrice": round(after_hours_price, 2) if after_hours_price else None,
+            "AfterChange": round(after_hours_change, 2) if after_hours_change else None,
             "RSI": round(last_row['RSI'], 2) if not pd.isna(last_row['RSI']) else "N/A",
             "EMA20": round(last_row['EMA20'], 2) if not pd.isna(last_row['EMA20']) else "N/A",
             "EMA60": round(last_row['EMA60'], 2) if not pd.isna(last_row['EMA60']) else "N/A",
-            "EMA120": round(last_row['EMA120'], 2) if not pd.isna(last_row['EMA120']) else "N/A"
+            "EMA120": round(last_row['EMA120'], 2) if not pd.isna(last_row['EMA120']) else "N/A",
+            "Chart": chart_filename
         }
         return result
     except Exception as e:
         return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
+
+def generate_chart(symbol, df, filename):
+    # 최근 60영업일 데이터만 사용 (차트 가독성)
+    plot_df = df.tail(60).copy()
+    
+    # 공백 데이터 제거
+    plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
+    
+    # EMA 선 설정
+    apds = [
+        mpf.make_addplot(plot_df['EMA20'], color='red', width=0.7),
+        mpf.make_addplot(plot_df['EMA60'], color='cyan', width=0.7),
+        mpf.make_addplot(plot_df['EMA120'], color='lime', width=0.7),
+        mpf.make_addplot(plot_df['RSI'], panel=1, color='black', width=0.7, secondary_y=False)
+    ]
+    
+    # 스타일 설정
+    style = mpf.make_mpf_style(base_mpf_style='charles', gridstyle='', facecolor='white', edgecolor='black')
+    
+    # 차트 폴더 생성
+    if not os.path.exists("public/charts"):
+        os.makedirs("public/charts")
+    
+    # 차트 저장
+    full_path = os.path.join("public/charts", filename)
+    
+    fig, axes = mpf.plot(
+        plot_df,
+        type='candle',
+        addplot=apds,
+        volume=False,
+        figratio=(12, 8),
+        style=style,
+        returnfig=True,
+        panel_ratios=(2, 1), # 메인 차트와 RSI 비율
+        tight_layout=True
+    )
+    
+    # 제목 및 축 설정 (한글 깨짐 방지를 위해 영어 사용)
+    axes[0].set_title(f"{symbol} Daily Chart", fontsize=15, fontweight='bold')
+    axes[2].set_ylabel('RSI(14)', fontsize=10)
+    
+    plt.savefig(full_path, dpi=100)
+    plt.close()
 
 def get_access_token():
     """Refresh Token을 이용해 새로운 Access Token 발급"""
@@ -97,7 +165,7 @@ def generate_html_report(results):
                 align-items: center;
             }}
             .container {{
-                max-width: 800px;
+                max-width: 1000px;
                 width: 100%;
             }}
             header {{
@@ -117,48 +185,79 @@ def generate_html_report(results):
                 font-size: 1rem;
             }}
             .grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
             }}
             .card {{
                 background: var(--card-bg);
                 backdrop-filter: blur(10px);
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 20px;
-                padding: 24px;
-                transition: transform 0.3s ease, border-color 0.3s ease;
+                padding: 30px;
+                width: 100%;
+                box-sizing: border-box;
             }}
-            .card:hover {{
-                transform: translateY(-5px);
-                border-color: var(--accent-blue);
-            }}
-            .symbol {{
-                font-size: 1.5rem;
-                font-weight: 800;
-                margin-bottom: 8px;
+            .card-header {{
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
+                align-items: flex-start;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 20px;
             }}
-            .price {{
+            .symbol-box {{
+                display: flex;
+                flex-direction: column;
+            }}
+            .symbol {{
                 font-size: 2rem;
-                font-weight: 600;
+                font-weight: 800;
                 margin-bottom: 4px;
             }}
-            .change {{
-                font-size: 1.1rem;
+            .price-section {{
+                display: flex;
+                gap: 40px;
+                flex-wrap: wrap;
+            }}
+            .price-item {{
+                display: flex;
+                flex-direction: column;
+            }}
+            .price-label {{
+                font-size: 0.75rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }}
+            .price-value {{
+                font-size: 1.75rem;
+                font-weight: 700;
+            }}
+            .price-change {{
+                font-size: 1rem;
                 font-weight: 600;
-                margin-bottom: 20px;
             }}
             .up {{ color: var(--accent-green); }}
             .down {{ color: var(--accent-red); }}
+            .chart-box {{
+                margin: 20px 0;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: white;
+            }}
+            .chart-box img {{
+                width: 100%;
+                height: auto;
+                display: block;
+            }}
             .indicators {{
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
-                padding-top: 16px;
+                padding-top: 20px;
             }}
             .indicator-item {{
                 display: flex;
@@ -170,6 +269,24 @@ def generate_html_report(results):
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 margin-bottom: 4px;
+            }}
+            .value {{
+                font-size: 1.1rem;
+                font-weight: 600;
+            }}
+            footer {{
+                margin-top: 60px;
+                text-align: center;
+                color: var(--text-dim);
+                font-size: 0.875rem;
+            }}
+            @media (max-width: 600px) {{
+                .indicators {{
+                    grid-template-columns: 1fr 1fr;
+                }}
+                .price-section {{
+                    gap: 20px;
+                }}
             }}
             .value {{
                 font-size: 1rem;
@@ -195,17 +312,43 @@ def generate_html_report(results):
     for res in results:
         if isinstance(res, str): continue
         
-        change_class = "up" if res['Change'] >= 0 else "down"
-        change_sign = "+" if res['Change'] >= 0 else ""
+        c_class = "up" if res['Change'] >= 0 else "down"
+        c_sign = "+" if res['Change'] >= 0 else ""
+        
+        a_class = "up" if (res['AfterChange'] or 0) >= 0 else "down"
+        a_sign = "+" if (res['AfterChange'] or 0) >= 0 else ""
         
         html_template += f"""
                 <div class="card">
-                    <div class="symbol">
-                        {res['Symbol']}
-                        <span class="{change_class}">{ "📈" if res['Change'] >= 0 else "📉" }</span>
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol">{res['Symbol']}</div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">{res['Price']}</span>
+                                <span class="price-change {c_class}">{c_sign}{res['Change']}%</span>
+                            </div>
+        """
+        
+        if res['AfterPrice']:
+            html_template += f"""
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">{res['AfterPrice']}</span>
+                                <span class="price-change {a_class}">{a_sign}{res['AfterChange']}%</span>
+                            </div>
+            """
+            
+        html_template += f"""
+                        </div>
                     </div>
-                    <div class="price">${res['Price']}</div>
-                    <div class="change {change_class}">{change_sign}{res['Change']}%</div>
+                    
+                    <div class="chart-box">
+                        <img src="charts/{res['Chart']}" alt="{res['Symbol']} Chart">
+                    </div>
+                    
                     <div class="indicators">
                         <div class="indicator-item">
                             <span class="label">RSI(14)</span>
