@@ -164,7 +164,7 @@ def generate_chart(symbol, df, filename):
         mpf.make_addplot(plot_df['EMA20'], color='#f59e0b', width=1.2, label='EMA 20'),
         mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'),
         mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'),
-        mpf.make_addplot(plot_df['RSI'], panel=1, color='#334155', width=1.0, secondary_y=False)
+        mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False)
     ]
     
     # 미니멀 스타일 설정
@@ -175,7 +175,7 @@ def generate_chart(symbol, df, filename):
         gridcolor='#f1f5f9',
         facecolor='white', 
         edgecolor='#cbd5e1',
-        rc={'font.family': 'sans-serif', 'font.size': 7}
+        rc={'font.family': 'sans-serif', 'font.size': 6.5}
     )
     
     # 차트 폴더 생성
@@ -185,43 +185,41 @@ def generate_chart(symbol, df, filename):
     # 차트 저장
     full_path = os.path.join("public/charts", filename)
     
-    # 여백 최적화 (가로, 세로 완벽한 중앙 배치를 위해 tight_layout=False 및 수동 조정)
+    # 여백을 넉넉하게(20%) 설정하여 차트 본문(박스)을 정중앙에 배치
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
         addplot=apds,
         volume=False,
-        figratio=(12, 7),
+        figratio=(12, 8), # 가로세로 비율 조정
         style=style,
         returnfig=True,
         panel_ratios=(2, 1),
         tight_layout=False,
-        scale_padding={'left': 0.1, 'top': 0.1, 'right': 1.0, 'bottom': 1.0},
         ylabel='',
         ylabel_lower=''
     )
     
-    # 가로/세로 여백을 완벽하게 대칭으로 하여 한가운데 배치
-    # left=0.1, right=0.9 (좌우 10% 여백)
-    # bottom=0.1, top=0.9 (상하 10% 여백)
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+    # 좌/우 20%, 상/하 20% 여백을 주어 plot 영역을 정가운데 배치
+    # left=0.2, right=0.8 -> 가로 중앙
+    # bottom=0.2, top=0.8 -> 세로 중앙
+    plt.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)
     
     # Legend 설정 (심플하게)
-    axes[0].legend(loc='upper left', fontsize=7, frameon=False)
+    axes[0].legend(loc='upper left', fontsize=6, frameon=False)
     
     # RSI 수평선
     axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
     axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
     
-    # 불필요한 레이블 제거
+    # 축 설정 정리
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
     
-    # 폰트 크기 및 틱 설정
+    # 폰트 및 틱 설정 (숫자가 차트 박스 밖으로 여유 있게 나오도록 pad 조정)
     for ax in axes:
-        ax.tick_params(axis='y', labelsize=6, pad=3)
-        ax.tick_params(axis='x', labelsize=6, pad=3)
-        # 오른쪽 축 숫자만 나오게 (왼쪽 축은 이미ylabel='' 로 비움)
+        ax.tick_params(axis='y', labelsize=6, pad=5)
+        ax.tick_params(axis='x', labelsize=6, pad=5)
     
     plt.savefig(full_path, dpi=160)
     plt.close()
