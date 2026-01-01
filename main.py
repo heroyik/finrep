@@ -76,12 +76,12 @@ def generate_chart(symbol, df, filename):
     # 공백 데이터 제거
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정
+    # EMA 선 설정 (legend용 label 추가)
     apds = [
-        mpf.make_addplot(plot_df['EMA20'], color='red', width=0.7),
-        mpf.make_addplot(plot_df['EMA60'], color='cyan', width=0.7),
-        mpf.make_addplot(plot_df['EMA120'], color='lime', width=0.7),
-        mpf.make_addplot(plot_df['RSI'], panel=1, color='black', width=0.7, secondary_y=False)
+        mpf.make_addplot(plot_df['EMA20'], color='red', width=0.8, label='EMA 20'),
+        mpf.make_addplot(plot_df['EMA60'], color='cyan', width=0.8, label='EMA 60'),
+        mpf.make_addplot(plot_df['EMA120'], color='lime', width=0.8, label='EMA 120'),
+        mpf.make_addplot(plot_df['RSI'], panel=1, color='black', width=0.8, secondary_y=False)
     ]
     
     # 스타일 설정
@@ -106,11 +106,18 @@ def generate_chart(symbol, df, filename):
         tight_layout=True
     )
     
-    # 제목 및 축 설정 (한글 깨짐 방지를 위해 영어 사용)
-    axes[0].set_title(f"{symbol} Daily Chart", fontsize=15, fontweight='bold')
-    axes[2].set_ylabel('RSI(14)', fontsize=10)
+    # Legend 추가 (EMA)
+    axes[0].legend(loc='upper left', fontsize=8)
     
-    plt.savefig(full_path, dpi=100)
+    # RSI Thresholds (30, 70) 수평선 추가
+    axes[2].axhline(y=70, color='red', linestyle='--', linewidth=0.7, alpha=0.5)
+    axes[2].axhline(y=30, color='green', linestyle='--', linewidth=0.7, alpha=0.5)
+    
+    # 제목 제거 (사용자 요청: 글자가 다 안보임)
+    axes[0].set_title("")
+    axes[2].set_ylabel('RSI', fontsize=10)
+    
+    plt.savefig(full_path, dpi=120)
     plt.close()
 
 def get_access_token():
@@ -246,34 +253,37 @@ def generate_html_report(results):
                 overflow: hidden;
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 background: white;
+                cursor: zoom-in;
+                transition: transform 0.3s ease;
             }}
             .chart-box img {{
                 width: 100%;
                 height: auto;
                 display: block;
             }}
-            .indicators {{
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                padding-top: 20px;
+            
+            /* Modal / Zoom 스타일 */
+            .modal {{
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.9);
+                padding: 20px;
+                box-sizing: border-box;
+                justify-content: center;
+                align-items: center;
             }}
-            .indicator-item {{
-                display: flex;
-                flex-direction: column;
+            .modal-content {{
+                max-width: 95%;
+                max-height: 95%;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0,0,0,0.5);
             }}
-            .label {{
-                font-size: 0.75rem;
-                color: var(--text-dim);
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 4px;
-            }}
-            .value {{
-                font-size: 1.1rem;
-                font-weight: 600;
-            }}
+
             footer {{
                 margin-top: 60px;
                 text-align: center;
@@ -281,9 +291,6 @@ def generate_html_report(results):
                 font-size: 0.875rem;
             }}
             @media (max-width: 600px) {{
-                .indicators {{
-                    grid-template-columns: 1fr 1fr;
-                }}
                 .price-section {{
                     gap: 20px;
                 }}
@@ -345,7 +352,7 @@ def generate_html_report(results):
                         </div>
                     </div>
                     
-                    <div class="chart-box">
+                    <div class="chart-box" onclick="openModal('charts/{res['Chart']}')">
                         <img src="charts/{res['Chart']}" alt="{res['Symbol']} Chart">
                     </div>
                     
@@ -373,9 +380,24 @@ def generate_html_report(results):
     html_template += """
             </div>
             <footer>
-                <p>Data provided by Yahoo Finance & Automated by Antigravity</p>
+                <p>&copy; 2026 FinRep. Powered by Yahoo Finance.</p>
             </footer>
         </div>
+
+        <!-- 이미지 확대 모달 -->
+        <div id="modal" class="modal" onclick="closeModal()">
+            <img class="modal-content" id="modalImg">
+        </div>
+
+        <script>
+            function openModal(src) {
+                document.getElementById('modal').style.display = 'flex';
+                document.getElementById('modalImg').src = src;
+            }
+            function closeModal() {
+                document.getElementById('modal').style.display = 'none';
+            }
+        </script>
     </body>
     </html>
     """
