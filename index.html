@@ -118,6 +118,49 @@
                 display: block;
             }
             
+            /* News Section */
+            .news-section {
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 20px;
+            }
+            .news-header {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 15px;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .news-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .news-item {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .news-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 1.05rem;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+            .news-link:hover {
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }
+            .news-source {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                font-weight: 400;
+            }
+
             /* Modal / Zoom 스타일 */
             .modal {
                 display: none;
@@ -127,17 +170,18 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0,0,0,0.9);
-                padding: 20px;
+                background-color: rgba(0,0,0,0.95);
+                padding: 10px;
                 box-sizing: border-box;
                 justify-content: center;
                 align-items: center;
             }
             .modal-content {
-                max-width: 95%;
-                max-height: 95%;
-                border-radius: 10px;
-                box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
+                object-fit: contain;
             }
 
             footer {
@@ -148,18 +192,11 @@
             }
             @media (max-width: 600px) {
                 .price-section {
-                    gap: 20px;
+                    gap: 15px;
                 }
-            }
-            .value {
-                font-size: 1rem;
-                font-weight: 600;
-            }
-            footer {
-                margin-top: 60px;
-                text-align: center;
-                color: var(--text-dim);
-                font-size: 0.875rem;
+                .price-value {
+                    font-size: 1.5rem;
+                }
             }
         </style>
     </head>
@@ -167,7 +204,7 @@
         <div class="container">
             <header>
                 <h1>Daily Stock Briefing</h1>
-                <p class="date">Updated at: 2026-01-01 14:17:59 KST</p>
+                <p class="date">Updated at: 2026-01-01 15:04:42 KST</p>
             </header>
             <div class="grid">
     
@@ -196,22 +233,27 @@
                         <img src="charts/BITU_chart.png" alt="BITU Chart">
                     </div>
                     
-                    <div class="indicators">
-                        <div class="indicator-item">
-                            <span class="label">RSI(14)</span>
-                            <span class="value">41.52</span>
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
                         </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(20)</span>
-                            <span class="value">23.13</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(60)</span>
-                            <span class="value">28.34</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(120)</span>
-                            <span class="value">32.26</span>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/trump-20-stocks-soar-again-gold-hits-records-ai-boom-rolls-on--yahoo-finances-2025-year-in-review-110012895.html" target="_blank" class="news-link">Trump 2.0, stocks soar again, gold hits records, AI boom rolls on — Yahoo Finance's 2025 year in review</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/video/gold-silver-strategy-trade-lower-212900313.html" target="_blank" class="news-link">Gold, silver, & Strategy trade lower; Brookfield's cloud business</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://beincrypto.com/hbar-price-forms-double-top/" target="_blank" class="news-link">HBAR Price Forms Double Top, Faces A Minor Crash; Can Bitcoin Save It?</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
                         </div>
                     </div>
                 </div>
@@ -241,22 +283,27 @@
                         <img src="charts/ORCX_chart.png" alt="ORCX Chart">
                     </div>
                     
-                    <div class="indicators">
-                        <div class="indicator-item">
-                            <span class="label">RSI(14)</span>
-                            <span class="value">40.03</span>
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
                         </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(20)</span>
-                            <span class="value">18.57</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(60)</span>
-                            <span class="value">24.62</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(120)</span>
-                            <span class="value">26.73</span>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/video/worlds-richest-people-ai-shaking-130040174.html" target="_blank" class="news-link">World's richest people: How AI is shaking up the rankings</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/trump-20-stocks-soar-again-gold-hits-records-ai-boom-rolls-on--yahoo-finances-2025-year-in-review-110012895.html" target="_blank" class="news-link">Trump 2.0, stocks soar again, gold hits records, AI boom rolls on — Yahoo Finance's 2025 year in review</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2025/12/31/oracle-stock-in-5-years-moonshot-or-crash-landing/" target="_blank" class="news-link">Oracle Stock in 5 Years: Moonshot or Crash Landing?</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
                         </div>
                     </div>
                 </div>
@@ -286,22 +333,27 @@
                         <img src="charts/PLTG_chart.png" alt="PLTG Chart">
                     </div>
                     
-                    <div class="indicators">
-                        <div class="indicator-item">
-                            <span class="label">RSI(14)</span>
-                            <span class="value">42.78</span>
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
                         </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(20)</span>
-                            <span class="value">28.53</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(60)</span>
-                            <span class="value">28.03</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(120)</span>
-                            <span class="value">26.02</span>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/this-artificial-intelligence-stock-could-be-the-bi/" target="_blank" class="news-link">This Artificial Intelligence Stock Could Be the Biggest Bargain Buy of 2026</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-2025-2026-tesla-deliveries-palantir-nvidia-chipmaker-taiwan-semi/?src=A00220&yptr=yahoo" target="_blank" class="news-link">Dow Jones Futures: Market Shut, Faces Test To Start 2026; Tesla Deliveries, Musk Deadline In Focus</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/high-conviction-ai-stocks-with-10x-potential-2036/" target="_blank" class="news-link">3 High-Conviction AI Stocks With 10x Potential by 2036</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
                         </div>
                     </div>
                 </div>
@@ -331,22 +383,27 @@
                         <img src="charts/OKLL_chart.png" alt="OKLL Chart">
                     </div>
                     
-                    <div class="indicators">
-                        <div class="indicator-item">
-                            <span class="label">RSI(14)</span>
-                            <span class="value">33.28</span>
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
                         </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(20)</span>
-                            <span class="value">25.35</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(60)</span>
-                            <span class="value">39.51</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(120)</span>
-                            <span class="value">41.93</span>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/seaport-research-bases-oklo-oklo-163348034.html" target="_blank" class="news-link">Seaport Research Bases New Oklo (OKLO) Valuation on $1.59B 2032 EBITDA Projection</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/cathie-wood-ark-investment-acquires-101845469.html" target="_blank" class="news-link">Cathie Wood’s ARK Investment Acquires Stake in OKLO</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.investors.com/news/nuclear-ai-demand-fuels-rosy-outlook-for-uranium-producer/?src=A00220&yptr=yahoo" target="_blank" class="news-link">This Company Just Announced Long-Term Contracts For Nuclear Power Amid Rosy Outlook For This Commodity</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
                         </div>
                     </div>
                 </div>
