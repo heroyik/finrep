@@ -26,20 +26,66 @@ The latest briefing is always available at:
 - **Infrastructure**: GitHub Actions, GitHub Pages (Deployed from `gh-pages` branch)
 - **API**: Kakao Developers (OAuth 2.0 Message API)
 
-## ⚙️ Setup & Secrets
+## ⚙️ Setup & Secrets: Step-by-Step
 
-To run this project, you need to set up the following GitHub Secrets under `Settings > Secrets and variables > Actions`:
+To run this project, you need to configure the Kakao API and GitHub Secrets.
 
-| Secret Name | Description |
+### 1. Kakao Developers Setup
+
+1.  Go to [Kakao Developers](https://developers.kakao.com/) and Log in.
+2.  Click **"Add An Application"** and create a new app (e.g., "StockBriefing").
+3.  Go to **[My Application] > [App Keys]** and copy the **REST API Key**.
+4.  Go to **[Product Settings] > [Kakao Login]**:
+    *   Turn **ON** the activation switch.
+    *   Under **Redirect URI**, clicking "Register Redirect URI" and add: `https://localhost:3000`.
+5.  Go to **[Product Settings] > [Kakao Login] > [Security]**:
+    *   Click "Generate code" for **Client Secret**.
+    *   Copy the **Client Secret** string.
+    *   Set **Activation State** to **Enable**.
+6.  Go to **[Product Settings] > [Platfrom]**:
+    *   Click "Register Web Platform".
+    *   Add your GitHub Pages URL: `https://heroyik.github.io`.
+
+### 2. Get Access/Refresh Token
+
+You need to authorize your app once to get the initial tokens.
+
+1.  **Get Authorization Code**:
+    *   Replace `{REST_API_KEY}` in the URL below and visit it in your browser:
+        ```
+        https://kauth.kakao.com/oauth/authorize?client_id={REST_API_KEY}&redirect_uri=https://localhost:3000&response_type=code
+        ```
+    *   Log in and agree to permissions.
+    *   You will be redirected to an error page (localhost). **Copy the `code=` value** from the address bar URL.
+
+2.  **Generate Tokens**:
+    *   Run the provided helper script `get_kakao_token.py` (if available) OR use this curl command (Terminal/Git Bash): // turbo
+        ```bash
+        curl -v -X POST "https://kauth.kakao.com/oauth/token" \
+         -d "grant_type=authorization_code" \
+         -d "client_id={REST_API_KEY}" \
+         -d "redirect_uri=https://localhost:3000" \
+         -d "code={AUTHORIZATION_CODE}" \
+         -d "client_secret={CLIENT_SECRET}"
+        ```
+    *   Copy the `"refresh_token"` from the JSON response.
+
+### 3. GitHub Secrets Configuration
+
+Go to your repository **Settings > Secrets and variables > Actions** and add these repository secrets:
+
+| Secret Name | Value to Enter |
 | :--- | :--- |
-| `KAKAO_REST_API_KEY` | Kakao Developers REST API Key |
-| `KAKAO_CLIENT_SECRET` | Kakao Login Security Client Secret |
-| `KAKAO_REFRESH_TOKEN` | Initial OAuth 2.0 Refresh Token |
+| `KAKAO_REST_API_KEY` | The **REST API Key** from Step 1. |
+| `KAKAO_CLIENT_SECRET` | The **Client Secret** from Step 1. |
+| `KAKAO_REFRESH_TOKEN` | The **refresh_token** from Step 2. |
 
-### Required Repository Settings
-1.  **Workflow Permissions**: Set to **Read and write permissions** (*Settings > Actions > General*).
-2.  **GitHub Pages**: Configure to deploy from the **gh-pages** branch (*Settings > Pages*).
-3.  **Kakao Platform**: Register `https://heroyik.github.io` in **Web Platform Settings** (*Kakao Developers > My Application > Platform*).
+### 4. GitHub Actions Permissions
+
+1.  Go to **Settings > Actions > General**.
+2.  Scroll to **Workflow permissions**.
+3.  Select **Read and write permissions**.
+4.  Click **Save**.
 
 ## 📅 Schedule
 
