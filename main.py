@@ -75,8 +75,7 @@ def get_access_token():
     if "access_token" in tokens:
         return tokens["access_token"]
     else:
-        print(f"Error refreshing token: {tokens}")
-        return None
+        raise Exception(f"Error refreshing token: {tokens}")
 
 import json
 
@@ -94,29 +93,38 @@ def send_kakao_message(message):
     headers = {
         "Authorization": f"Bearer {access_token}"
     }
+
+    # 카카오톡 기본 텍스트 템플릿은 200자 제한이 있으므로 메시지를 분할하여 전송
+    max_len = 200
+    chunks = [message[i:i+max_len] for i in range(0, len(message), max_len)]
     
-    template_object = {
-        "object_type": "text",
-        "text": message,
-        "link": {
-            "web_url": "https://finance.yahoo.com",
-            "mobile_web_url": "https://finance.yahoo.com"
-        },
-        "button_title": "자세히 보기"
-    }
-    
-    payload = {
-        "template_object": json.dumps(template_object)
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=payload)
-        response.raise_for_status()
-        print("KakaoTalk message sent successfully!")
-    except Exception as e:
-        print(f"Failed to send KakaoTalk message: {e}")
-        if response:
-            print(f"Response: {response.json()}")
+    for i, chunk in enumerate(chunks):
+        template_object = {
+            "object_type": "text",
+            "text": chunk,
+            "link": {
+                "web_url": "https://finance.yahoo.com",
+                "mobile_web_url": "https://finance.yahoo.com"
+            },
+            "button_title": "자세히 보기" if i == len(chunks) - 1 else f"계속 읽기 ({i+1}/{len(chunks)})"
+        }
+        
+        payload = {
+            "template_object": json.dumps(template_object)
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, data=payload)
+            if response.status_code != 200:
+                print(f"Kakao API Error for chunk {i+1}: {response.status_code} - {response.text}")
+                # 403 에러인 경우 권한 문제일 가능성이 큼
+                if response.status_code == 403:
+                    print("TIP: 카카오 개발자 콘솔에서 '카카오톡 메시지 전송' 권한이 설정되어 있는지 확인하세요.")
+                raise Exception(f"Kakao API Error: {response.status_code}")
+            print(f"KakaoTalk message chunk {i+1} sent successfully!")
+        except Exception as e:
+            print(f"Failed to send KakaoTalk message chunk {i+1}: {e}")
+            raise e
 
 if __name__ == "__main__":
     report_data = []
