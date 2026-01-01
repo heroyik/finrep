@@ -1,6 +1,6 @@
 # 📊 FinRep: Daily US Stock Briefing
 
-FinRep is an automated system that fetches daily closing prices and technical indicators (RSI, EMA) for specific US stocks and sends a visualized briefing to KakaoTalk.
+FinRep is an automated system that fetches daily closing prices and technical indicators (RSI, EMA) for specific US stocks and sends a visualized **Daily US Stock Briefing** to KakaoTalk.
 
 ## 🚀 Key Features
 
