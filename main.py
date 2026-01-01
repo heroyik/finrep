@@ -569,7 +569,7 @@ def generate_html_report(results):
     <body>
         <div class="container">
             <header>
-                <h1>Daily Stock Briefing</h1>
+                <h1>Daily US Stock Briefing</h1>
                 <p class="date">Updated at: {date_str}</p>
             </header>
             
