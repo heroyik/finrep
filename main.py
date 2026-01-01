@@ -185,7 +185,7 @@ def generate_chart(symbol, df, filename):
     # 차트 저장
     full_path = os.path.join("public/charts", filename)
     
-    # 여백을 넉넉하게(20%) 설정하여 차트 본문(박스)을 정중앙에 배치
+    # 여백을 넉넉하게 설정하여 차트 본문(박스)을 정중앙에 배치
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
@@ -200,10 +200,10 @@ def generate_chart(symbol, df, filename):
         ylabel_lower=''
     )
     
-    # 좌/우 20%, 상/하 20% 여백을 주어 plot 영역을 정가운데 배치
-    # left=0.2, right=0.8 -> 가로 중앙
-    # bottom=0.2, top=0.8 -> 세로 중앙
-    plt.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)
+    # 사용자 피드백 반영: 왼쪽 여백을 오렌지 가이드라인에 맞춰 축소 (0.2 -> 0.12)
+    # 우측 여백은 유지 (right=0.8)
+    # 상하 여백은 기존 유지 (top=0.8, bottom=0.2)
+    plt.subplots_adjust(left=0.12, right=0.8, top=0.8, bottom=0.2)
     
     # Legend 설정 (심플하게)
     axes[0].legend(loc='upper left', fontsize=6, frameon=False)
