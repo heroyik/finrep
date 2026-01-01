@@ -16,6 +16,24 @@ KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
 
+# 종목별 기초자산 매핑 (뉴스 수집용)
+UNDERLYING_MAP = {
+    "BITU": "BTC-USD",
+    "ORCX": "ORCL",
+    "PLTG": "PLTR",
+    "CRWU": "CRWV",
+    "CCUP": "CRCL",
+    "OKLL": "OKLO"
+}
+
+# 메이저 뉴스 매체 리스트
+MAJOR_PUBLISHERS = [
+    "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
+    "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
+    "The New York Times", "NYT", "The Economist", "Barrons", "Investor's Business Daily", "IBD",
+    "Yahoo Finance"
+]
+
 def fetch_and_analyze(ticker_symbol):
     try:
         ticker = yf.Ticker(ticker_symbol)
@@ -53,6 +71,9 @@ def fetch_and_analyze(ticker_symbol):
         chart_filename = f"{ticker_symbol}_chart.png"
         generate_chart(ticker_symbol, df, chart_filename)
 
+        # 뉴스 수집
+        news = fetch_news(ticker_symbol)
+
         result = {
             "Symbol": ticker_symbol,
             "Price": round(current_close, 2),
@@ -63,11 +84,73 @@ def fetch_and_analyze(ticker_symbol):
             "EMA20": round(last_row['EMA20'], 2) if not pd.isna(last_row['EMA20']) else "N/A",
             "EMA60": round(last_row['EMA60'], 2) if not pd.isna(last_row['EMA60']) else "N/A",
             "EMA120": round(last_row['EMA120'], 2) if not pd.isna(last_row['EMA120']) else "N/A",
-            "Chart": chart_filename
+            "Chart": chart_filename,
+            "News": news
         }
         return result
     except Exception as e:
         return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
+
+def fetch_news(ticker_symbol):
+    underlying = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
+    try:
+        t = yf.Ticker(underlying)
+        news_list = t.news
+        filtered_news = []
+        
+        if not news_list:
+            return []
+
+        for n in news_list:
+            # yfinance news 구조 대응 (데이터가 'content' 필드 내부에 있음)
+            content = n.get('content', n) 
+            title = content.get('title')
+            
+            # publisher 확인
+            provider = content.get('provider', {})
+            publisher = provider.get('name', content.get('publisher', 'Unknown'))
+            
+            # link 확인 (canonicalUrl or clickThroughUrl)
+            link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+            link = link_obj.get('url', content.get('link'))
+            
+            if not title or not link or title == "None": continue
+            
+            if any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS):
+                filtered_news.append({
+                    "title": title,
+                    "publisher": publisher,
+                    "link": link
+                })
+            
+            if len(filtered_news) >= 3:
+                break
+        
+        # 필터링된 뉴스가 부족하면 상위 뉴스 그냥 노출 (백업)
+        if len(filtered_news) < 3:
+            for n in news_list:
+                content = n.get('content', n)
+                title = content.get('title')
+                provider = content.get('provider', {})
+                publisher = provider.get('name', content.get('publisher', 'Market News'))
+                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+                link = link_obj.get('url', content.get('link'))
+                
+                if not title or not link or title == "None": continue
+                
+                if title not in [fn['title'] for fn in filtered_news]:
+                    filtered_news.append({
+                        "title": title,
+                        "publisher": publisher,
+                        "link": link
+                    })
+                if len(filtered_news) >= 3:
+                    break
+                    
+        return filtered_news
+    except Exception as e:
+        print(f"Error fetching news for {underlying}: {e}")
+        return []
 
 def generate_chart(symbol, df, filename):
     # 최근 60영업일 데이터만 사용 (차트 가독성)
@@ -262,6 +345,49 @@ def generate_html_report(results):
                 display: block;
             }}
             
+            /* News Section */
+            .news-section {{
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 20px;
+            }}
+            .news-header {{
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 15px;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }}
+            .news-list {{
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }}
+            .news-item {{
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }}
+            .news-link {{
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 1.05rem;
+                font-weight: 600;
+                line-height: 1.4;
+            }}
+            .news-link:hover {{
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }}
+            .news-source {{
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                font-weight: 400;
+            }}
+
             /* Modal / Zoom 스타일 */
             .modal {{
                 display: none;
@@ -271,17 +397,18 @@ def generate_html_report(results):
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0,0,0,0.9);
-                padding: 20px;
+                background-color: rgba(0,0,0,0.95);
+                padding: 10px;
                 box-sizing: border-box;
                 justify-content: center;
                 align-items: center;
             }}
             .modal-content {{
-                max-width: 95%;
-                max-height: 95%;
-                border-radius: 10px;
-                box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
+                object-fit: contain;
             }}
 
             footer {{
@@ -292,18 +419,11 @@ def generate_html_report(results):
             }}
             @media (max-width: 600px) {{
                 .price-section {{
-                    gap: 20px;
+                    gap: 15px;
                 }}
-            }}
-            .value {{
-                font-size: 1rem;
-                font-weight: 600;
-            }}
-            footer {{
-                margin-top: 60px;
-                text-align: center;
-                color: var(--text-dim);
-                font-size: 0.875rem;
+                .price-value {{
+                    font-size: 1.5rem;
+                }}
             }}
         </style>
     </head>
@@ -356,22 +476,22 @@ def generate_html_report(results):
                         <img src="charts/{res['Chart']}" alt="{res['Symbol']} Chart">
                     </div>
                     
-                    <div class="indicators">
-                        <div class="indicator-item">
-                            <span class="label">RSI(14)</span>
-                            <span class="value">{res['RSI']}</span>
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
                         </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(20)</span>
-                            <span class="value">{res['EMA20']}</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(60)</span>
-                            <span class="value">{res['EMA60']}</span>
-                        </div>
-                        <div class="indicator-item">
-                            <span class="label">EMA(120)</span>
-                            <span class="value">{res['EMA120']}</span>
+                        <div class="news-list">
+    """
+        
+        for n in res['News']:
+            html_template += f"""
+                            <div class="news-item">
+                                <a href="{n['link']}" target="_blank" class="news-link">{n['title']}</a>
+                                <span class="news-source">Source: {n['publisher']}</span>
+                            </div>
+            """
+            
+        html_template += f"""
                         </div>
                     </div>
                 </div>
