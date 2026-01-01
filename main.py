@@ -258,28 +258,15 @@ def send_kakao_link(briefing_url):
     }
 
     # 이미지 URL 및 템플릿 최적화
+    # 가장 단순하고 확실한 'text' 템플릿으로 변경하여 버튼 활성화 테스트
     template_object = {
-        "object_type": "feed",
-        "content": {
-            "title": "📊 오늘의 미국 증시 브리핑",
-            "description": f"{datetime.now().strftime('%Y-%m-%d')} 주요 ETF 분석 리포트",
-            "image_url": "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbcXkP2%2FbtsGSczC8Vw%2FkUKf6k6k6k6k6k6k6k6k6k%2Fimg.png", # 깨지지 않는 기본 이미지 예시
-            "image_width": 640,
-            "image_height": 360,
-            "link": {
-                "web_url": briefing_url,
-                "mobile_web_url": briefing_url
-            }
+        "object_type": "text",
+        "text": f"📊 오늘의 미국 증시 브리핑\n{datetime.now().strftime('%Y-%m-%d')} 주요 ETF 분석 리포트가 준비되었습니다.",
+        "link": {
+            "web_url": briefing_url,
+            "mobile_web_url": briefing_url
         },
-        "buttons": [
-            {
-                "title": "리포트 보기",
-                "link": {
-                    "web_url": briefing_url,
-                    "mobile_web_url": briefing_url
-                }
-            }
-        ]
+        "button_title": "리포트 보기"
     }
     
     payload = {
@@ -288,9 +275,9 @@ def send_kakao_link(briefing_url):
     
     response = requests.post(url, headers=headers, data=payload)
     if response.status_code == 200:
-        print("KakaoTalk link sent successfully!")
+        print("KakaoTalk message sent successfully!")
     else:
-        print(f"Failed to send KakaoTalk link: {response.status_code} - {response.text}")
+        print(f"Failed to send KakaoTalk message: {response.status_code} - {response.text}")
         raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
