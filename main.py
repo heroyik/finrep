@@ -14,6 +14,55 @@ KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
 
+def fetch_and_analyze(ticker_symbol):
+    try:
+        ticker = yf.Ticker(ticker_symbol)
+        df = ticker.history(period="1y")
+        
+        if df.empty:
+            return f"❌ {ticker_symbol}: 데이터를 가져올 수 없습니다."
+
+        df['RSI'] = ta.rsi(df['Close'], length=14)
+        df['EMA20'] = ta.ema(df['Close'], length=20)
+        df['EMA60'] = ta.ema(df['Close'], length=60)
+        df['EMA120'] = ta.ema(df['Close'], length=120)
+
+        last_row = df.iloc[-1]
+        prev_close = df.iloc[-2]['Close']
+        current_close = last_row['Close']
+        change_pct = ((current_close - prev_close) / prev_close) * 100
+
+        result = {
+            "Symbol": ticker_symbol,
+            "Price": round(current_close, 2),
+            "Change": round(change_pct, 2),
+            "RSI": round(last_row['RSI'], 2) if not pd.isna(last_row['RSI']) else "N/A",
+            "EMA20": round(last_row['EMA20'], 2) if not pd.isna(last_row['EMA20']) else "N/A",
+            "EMA60": round(last_row['EMA60'], 2) if not pd.isna(last_row['EMA60']) else "N/A",
+            "EMA120": round(last_row['EMA120'], 2) if not pd.isna(last_row['EMA120']) else "N/A"
+        }
+        return result
+    except Exception as e:
+        return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
+
+def get_access_token():
+    """Refresh Token을 이용해 새로운 Access Token 발급"""
+    url = "https://kauth.kakao.com/oauth/token"
+    data = {
+        "grant_type": "refresh_token",
+        "client_id": KAKAO_REST_API_KEY,
+        "client_secret": KAKAO_CLIENT_SECRET,
+        "refresh_token": KAKAO_REFRESH_TOKEN
+    }
+    response = requests.post(url, data=data)
+    tokens = response.json()
+    if "access_token" in tokens:
+        return tokens["access_token"]
+    else:
+        raise Exception(f"Error refreshing token: {tokens}")
+
+import json
+
 def generate_html_report(results):
     now = datetime.now()
     date_str = now.strftime('%Y-%m-%d %H:%M:%S KST')
