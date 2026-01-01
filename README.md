@@ -4,9 +4,12 @@ FinRep is an automated system that fetches daily closing prices and technical in
 
 ## 🚀 Key Features
 
-- **Data Collection**: Fetches historical data for specific tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL) using `yfinance`.
-- **Technical Analysis**: Calculates RSI(14) and EMA(20, 60, 120) using `pandas-ta`.
-- **Visualized Report**: Generates a premium dark-themed HTML report hosted on GitHub Pages.
+- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL).
+- **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., Bitcoin) to provide context.
+- **Premium Charting**:
+    - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.
+    - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.
+- **Visualized Report**: Generates a sleek, dark-themed HTML report hosted on GitHub Pages.
 - **KakaoTalk Integration**: Sends a summary message with a direct "View Report" button via KakaoTalk.
 - **Full Automation**: Scheduled execution every day at 7:00 AM KST using GitHub Actions.
 
@@ -18,7 +21,7 @@ The latest briefing is always available at:
 ## 🛠 Tech Stack
 
 - **Language**: Python 3.13
-- **Libraries**: `yfinance`, `pandas`, `pandas-ta`, `requests`
+- **Libraries**: `yfinance` (Data), `pandas-ta` (Analysis), `mplfinance` (Charting), `requests` (News & API)
 - **Infrastructure**: GitHub Actions, GitHub Pages (Deployed from `gh-pages` branch)
 - **API**: Kakao Developers (OAuth 2.0 Message API)
 
