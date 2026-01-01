@@ -295,7 +295,7 @@ def generate_html_report(results):
     
     html_template = f"""
     <!DOCTYPE html>
-    <html lang="ko">
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -632,9 +632,9 @@ def generate_html_report(results):
     html_template += """
                 </div>
                 <div class="strategy-legend">
-                    <div class="strategy-row"><strong>1차 매수:</strong> EMA(20) < EMA(60) < EMA(120) (역배열/저점구간)</div>
-                    <div class="strategy-row"><strong>2차 매수:</strong> 1차 매수 조건 충족 + RSI(14) < 30 (과매도 심화)</div>
-                    <div class="strategy-row"><strong>1차 매도:</strong> EMA(20) > EMA(60) > EMA(120) + RSI(14) > 70 (정배열 과열)</div>
+                    <div class="strategy-row"><strong>1st Buy:</strong> EMA(20) < EMA(60) < EMA(120) (Bearish Alignment / Bottom Zone)</div>
+                    <div class="strategy-row"><strong>2nd Buy:</strong> 1st Buy Conditions Met + RSI(14) < 30 (Deep Oversold)</div>
+                    <div class="strategy-row"><strong>1st Sell:</strong> EMA(20) > EMA(60) > EMA(120) + RSI(14) > 70 (Bullish Alignment / Overheated)</div>
                 </div>
             </div>
 
