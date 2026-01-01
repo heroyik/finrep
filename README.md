@@ -50,3 +50,7 @@ The automation script is scheduled via `.github/workflows/daily_briefing.yml`:
 ## 📄 License
 
 MIT License.
+
+## 👨‍💻 Credits
+
+Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy.
