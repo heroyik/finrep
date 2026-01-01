@@ -1,0 +1,433 @@
+
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Stock Briefing - 2026-01-02</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                --card-bg: rgba(255, 255, 255, 0.05);
+                --accent-blue: #38bdf8;
+                --accent-green: #10b981;
+                --accent-red: #f43f5e;
+                --text-main: #f8fafc;
+                --text-dim: #94a3b8;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--bg-gradient);
+                color: var(--text-main);
+                margin: 0;
+                padding: 40px 20px;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                max-width: 1000px;
+                width: 100%;
+            }
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+            h1 {
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 10px;
+                background: linear-gradient(to right, #38bdf8, #818cf8);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .date {
+                color: var(--text-dim);
+                font-size: 1rem;
+            }
+            .grid {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+            }
+            .card {
+                background: var(--card-bg);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 30px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+            .symbol-box {
+                display: flex;
+                flex-direction: column;
+            }
+            .symbol {
+                font-size: 2rem;
+                font-weight: 800;
+                margin-bottom: 4px;
+            }
+            .price-section {
+                display: flex;
+                gap: 40px;
+                flex-wrap: wrap;
+            }
+            .price-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .price-label {
+                font-size: 0.75rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }
+            .price-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+            }
+            .price-change {
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            .up { color: var(--accent-green); }
+            .down { color: var(--accent-red); }
+            .chart-box {
+                margin: 20px 0;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: white;
+                cursor: zoom-in;
+                transition: transform 0.3s ease;
+            }
+            .chart-box img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+            
+            /* News Section */
+            .news-section {
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 20px;
+            }
+            .news-header {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 15px;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .news-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .news-item {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .news-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 1.05rem;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+            .news-link:hover {
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }
+            .news-source {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                font-weight: 400;
+            }
+
+            /* Modal / Zoom 스타일 */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.95);
+                padding: 10px;
+                box-sizing: border-box;
+                justify-content: center;
+                align-items: center;
+            }
+            .modal-content {
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+                box-shadow: 0 0 30px rgba(0,0,0,0.5);
+                object-fit: contain;
+            }
+
+            footer {
+                margin-top: 60px;
+                text-align: center;
+                color: var(--text-dim);
+                font-size: 0.875rem;
+            }
+            @media (max-width: 600px) {
+                .price-section {
+                    gap: 15px;
+                }
+                .price-value {
+                    font-size: 1.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Daily Stock Briefing</h1>
+                <p class="date">Updated at: 2026-01-02 00:00:30 KST</p>
+            </header>
+            <div class="grid">
+    
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol">BITU</div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">22.09</span>
+                                <span class="price-change down">-0.85%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">22.18</span>
+                                <span class="price-change up">+0.41%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/BITU_chart.png')">
+                        <img src="charts/BITU_chart.png" alt="BITU Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
+                        </div>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/trump-20-stocks-soar-again-gold-hits-records-ai-boom-rolls-on--yahoo-finances-2025-year-in-review-110012895.html" target="_blank" class="news-link">Trump 2.0, stocks soar again, gold hits records, AI boom rolls on — Yahoo Finance's 2025 year in review</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/video/gold-silver-strategy-trade-lower-212900313.html" target="_blank" class="news-link">Gold, silver, & Strategy trade lower; Brookfield's cloud business</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://beincrypto.com/hbar-price-forms-double-top/" target="_blank" class="news-link">HBAR Price Forms Double Top, Faces A Minor Crash; Can Bitcoin Save It?</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol">ORCX</div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">17.23</span>
+                                <span class="price-change down">-2.32%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">17.04</span>
+                                <span class="price-change down">-1.1%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/ORCX_chart.png')">
+                        <img src="charts/ORCX_chart.png" alt="ORCX Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
+                        </div>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/video/worlds-richest-people-ai-shaking-130040174.html" target="_blank" class="news-link">World's richest people: How AI is shaking up the rankings</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/trump-20-stocks-soar-again-gold-hits-records-ai-boom-rolls-on--yahoo-finances-2025-year-in-review-110012895.html" target="_blank" class="news-link">Trump 2.0, stocks soar again, gold hits records, AI boom rolls on — Yahoo Finance's 2025 year in review</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2025/12/31/oracle-stock-in-5-years-moonshot-or-crash-landing/" target="_blank" class="news-link">Oracle Stock in 5 Years: Moonshot or Crash Landing?</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol">PLTG</div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">26.17</span>
+                                <span class="price-change down">-3.68%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">26.2</span>
+                                <span class="price-change up">+0.11%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/PLTG_chart.png')">
+                        <img src="charts/PLTG_chart.png" alt="PLTG Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
+                        </div>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/this-artificial-intelligence-stock-could-be-the-bi/" target="_blank" class="news-link">This Artificial Intelligence Stock Could Be the Biggest Bargain Buy of 2026</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-2025-2026-tesla-deliveries-palantir-nvidia-chipmaker-taiwan-semi/?src=A00220&yptr=yahoo" target="_blank" class="news-link">Dow Jones Futures: Market Shut, Faces Test To Start 2026; Tesla Deliveries, Musk Deadline In Focus</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.fool.com/investing/2026/01/01/high-conviction-ai-stocks-with-10x-potential-2036/" target="_blank" class="news-link">3 High-Conviction AI Stocks With 10x Potential by 2036</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol">OKLL</div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">16.77</span>
+                                <span class="price-change up">+0.06%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">16.84</span>
+                                <span class="price-change up">+0.42%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/OKLL_chart.png')">
+                        <img src="charts/OKLL_chart.png" alt="OKLL Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market Insights
+                        </div>
+                        <div class="news-list">
+    
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/seaport-research-bases-oklo-oklo-163348034.html" target="_blank" class="news-link">Seaport Research Bases New Oklo (OKLO) Valuation on $1.59B 2032 EBITDA Projection</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/cathie-wood-ark-investment-acquires-101845469.html" target="_blank" class="news-link">Cathie Wood’s ARK Investment Acquires Stake in OKLO</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.investors.com/news/nuclear-ai-demand-fuels-rosy-outlook-for-uranium-producer/?src=A00220&yptr=yahoo" target="_blank" class="news-link">This Company Just Announced Long-Term Contracts For Nuclear Power Amid Rosy Outlook For This Commodity</a>
+                                <span class="news-source">Source: Market News</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+            <footer>
+                <p>&copy; 2026 FinRep. Powered by Yahoo Finance.</p>
+            </footer>
+        </div>
+
+        <!-- 이미지 확대 모달 -->
+        <div id="modal" class="modal" onclick="closeModal()">
+            <img class="modal-content" id="modalImg">
+        </div>
+
+        <script>
+            function openModal(src) {
+                document.getElementById('modal').style.display = 'flex';
+                document.getElementById('modalImg').src = src;
+            }
+            function closeModal() {
+                document.getElementById('modal').style.display = 'none';
+            }
+        </script>
+    </body>
+    </html>
+    
