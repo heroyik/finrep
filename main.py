@@ -159,12 +159,12 @@ def generate_chart(symbol, df, filename):
     # 공백 데이터 제거
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정 (label 추가)
+    # EMA 선 설정 (가독성 높은 색상 선택: 오렌지, 보라, 진회색)
     apds = [
-        mpf.make_addplot(plot_df['EMA20'], color='#f43f5e', width=1.0, label='EMA 20'),
-        mpf.make_addplot(plot_df['EMA60'], color='#38bdf8', width=1.0, label='EMA 60'),
-        mpf.make_addplot(plot_df['EMA120'], color='#10b981', width=1.0, label='EMA 120'),
-        mpf.make_addplot(plot_df['RSI'], panel=1, color='#475569', width=1.0, secondary_y=False)
+        mpf.make_addplot(plot_df['EMA20'], color='#f59e0b', width=1.2, label='EMA 20'),
+        mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'),
+        mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'),
+        mpf.make_addplot(plot_df['RSI'], panel=1, color='#334155', width=1.0, secondary_y=False)
     ]
     
     # 미니멀 스타일 설정
@@ -175,7 +175,7 @@ def generate_chart(symbol, df, filename):
         gridcolor='#f1f5f9',
         facecolor='white', 
         edgecolor='#cbd5e1',
-        rc={'font.family': 'sans-serif', 'font.size': 8}
+        rc={'font.family': 'sans-serif', 'font.size': 7} # 폰트 크기 소폭 축소
     )
     
     # 차트 폴더 생성
@@ -185,8 +185,7 @@ def generate_chart(symbol, df, filename):
     # 차트 저장
     full_path = os.path.join("public/charts", filename)
     
-    # tight_layout 대신 subplots_adjust를 위해 False로 설정할 수도 있으나, 
-    # mplfinance의 scale_padding과 ylabel 설정을 우선 활용
+    # 여백 최적화 (left/right 대칭 및 최소화)
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
@@ -196,31 +195,34 @@ def generate_chart(symbol, df, filename):
         style=style,
         returnfig=True,
         panel_ratios=(2, 1),
-        tight_layout=False, # 수동 조절을 위해 False
-        ylabel='', # 왼쪽 라벨 제거
-        ylabel_lower='' # 하단 패널 왼쪽 라벨 제거
+        tight_layout=False, # 수동 조절
+        scale_padding={'left': 0.1, 'top': 0.1, 'right': 1.0, 'bottom': 1.0},
+        ylabel='',
+        ylabel_lower=''
     )
     
-    # 여백 미세 조정: 왼쪽 줄이고 오른쪽 늘림 (숫자 잘림 방지)
-    plt.subplots_adjust(left=0.02, right=0.92, top=0.98, bottom=0.1)
+    # 위 아래 좌 우 여백 최소화 및 대칭 (left=right 여백 확보)
+    # axes[0]이 메인차트, axes[1]이 메인차트 오른쪽 축, axes[2]가 RSI...
+    # subplots_adjust를 통해 전체 여백 조정
+    plt.subplots_adjust(left=0.06, right=0.94, top=0.96, bottom=0.08)
     
-    # Legend 설정 (심플하게)
+    # Legend 설정 (프레임 제거)
     axes[0].legend(loc='upper left', fontsize=7, frameon=False)
     
-    # RSI 수평선 (Overbought/Oversold)
-    axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.4)
-    axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.4)
+    # RSI 수평선 (불투명도 조정)
+    axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
+    axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
     
-    # 불필요한 레이블 제거
+    # 축 설정 정리
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
     
-    # 오른쪽 축 폰트 크기 조정
+    # 틱 레이블 폰트 및 패딩 조정
     for ax in axes:
-        ax.tick_params(axis='y', labelsize=7)
-        ax.tick_params(axis='x', labelsize=7)
+        ax.tick_params(axis='y', labelsize=6, pad=2)
+        ax.tick_params(axis='x', labelsize=6, pad=2)
     
-    plt.savefig(full_path, dpi=150) # 해상도 약간 상향
+    plt.savefig(full_path, dpi=160) # 해상도 최적화
     plt.close()
 
 def get_access_token():
