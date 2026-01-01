@@ -6,6 +6,11 @@ on:
     - cron: '0 22 * * *'
   workflow_dispatch: # 수동 실행 지원
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   run-briefing:
     runs-on: ubuntu-latest
