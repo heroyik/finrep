@@ -708,7 +708,7 @@ def generate_html_report(results):
     html_template += """
             </div>
             <footer>
-                <p>&copy; 2026 FinRep. Powered by Yahoo Finance.</p>
+                <p>Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy</p>
             </footer>
         </div>
 
