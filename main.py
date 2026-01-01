@@ -175,7 +175,7 @@ def generate_chart(symbol, df, filename):
         gridcolor='#f1f5f9',
         facecolor='white', 
         edgecolor='#cbd5e1',
-        rc={'font.family': 'sans-serif', 'font.size': 7} # 폰트 크기 소폭 축소
+        rc={'font.family': 'sans-serif', 'font.size': 7}
     )
     
     # 차트 폴더 생성
@@ -185,7 +185,7 @@ def generate_chart(symbol, df, filename):
     # 차트 저장
     full_path = os.path.join("public/charts", filename)
     
-    # 여백 최적화 (left/right 대칭 및 최소화)
+    # 여백 최적화 (가로, 세로 완벽한 중앙 배치를 위해 tight_layout=False 및 수동 조정)
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
@@ -195,34 +195,35 @@ def generate_chart(symbol, df, filename):
         style=style,
         returnfig=True,
         panel_ratios=(2, 1),
-        tight_layout=False, # 수동 조절
+        tight_layout=False,
         scale_padding={'left': 0.1, 'top': 0.1, 'right': 1.0, 'bottom': 1.0},
         ylabel='',
         ylabel_lower=''
     )
     
-    # 위 아래 좌 우 여백 최소화 및 대칭 (left=right 여백 확보)
-    # axes[0]이 메인차트, axes[1]이 메인차트 오른쪽 축, axes[2]가 RSI...
-    # subplots_adjust를 통해 전체 여백 조정
-    plt.subplots_adjust(left=0.06, right=0.94, top=0.96, bottom=0.08)
+    # 가로/세로 여백을 완벽하게 대칭으로 하여 한가운데 배치
+    # left=0.1, right=0.9 (좌우 10% 여백)
+    # bottom=0.1, top=0.9 (상하 10% 여백)
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
     
-    # Legend 설정 (프레임 제거)
+    # Legend 설정 (심플하게)
     axes[0].legend(loc='upper left', fontsize=7, frameon=False)
     
-    # RSI 수평선 (불투명도 조정)
+    # RSI 수평선
     axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
     axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
     
-    # 축 설정 정리
+    # 불필요한 레이블 제거
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
     
-    # 틱 레이블 폰트 및 패딩 조정
+    # 폰트 크기 및 틱 설정
     for ax in axes:
-        ax.tick_params(axis='y', labelsize=6, pad=2)
-        ax.tick_params(axis='x', labelsize=6, pad=2)
+        ax.tick_params(axis='y', labelsize=6, pad=3)
+        ax.tick_params(axis='x', labelsize=6, pad=3)
+        # 오른쪽 축 숫자만 나오게 (왼쪽 축은 이미ylabel='' 로 비움)
     
-    plt.savefig(full_path, dpi=160) # 해상도 최적화
+    plt.savefig(full_path, dpi=160)
     plt.close()
 
 def get_access_token():
