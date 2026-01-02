@@ -5,7 +5,11 @@ FinRep is an automated system that fetches daily closing prices and technical in
 ## 🚀 Key Features
 
 - **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL).
-- **Dynamic Signal Dashboard**: A conditional "Signal Board" at the top of the report instantly highlights assets triggering specific trading setups (Bullish Trend, Oversold, Overbought). Empty signals are automatically hidden for clarity.
+- **Dynamic Signal Dashboard**: Instantly highlights assets triggering specific trading setups:
+  - **1st Buy**: Bearish Alignment (EMA 20 < 60 < 120).
+  - **2nd Buy**: 1st Buy condition met + RSI < 30 (Deep Oversold).
+  - **1st Sell**: Bullish Alignment (EMA 20 > 60 > 120) + RSI > 70 (Overheated).
+  Empty signals are automatically hidden for clarity.
 - **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., Bitcoin) to provide context.
 - **Premium Charting**:
   - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.

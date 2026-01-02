@@ -386,6 +386,7 @@ def generate_html_report(results):
                 margin-bottom: 10px;
                 background: linear-gradient(to right, #38bdf8, #818cf8);
                 -webkit-background-clip: text;
+                background-clip: text;
                 -webkit-text-fill-color: transparent;
             }}
             .date {{
