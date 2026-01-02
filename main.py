@@ -781,7 +781,7 @@ def generate_html_report(results):
         f.write(html_template)
     print(f"HTML report generated: {report_path}")
 
-def send_kakao_link(briefing_url):
+def send_kakao_link(briefing_url, results, market_date):
     if not KAKAO_REST_API_KEY or not KAKAO_REFRESH_TOKEN:
         print(f"Kakao configuration missing. Briefing URL: {briefing_url}")
         return
@@ -793,19 +793,40 @@ def send_kakao_link(briefing_url):
         "Authorization": f"Bearer {access_token}"
     }
 
-    # Optimize Image URL and Template
-    # Changed to simplest 'text' template to test button activation
-    now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
-    k_date = now_kst.strftime('%Y-%m-%d')
+    # Extract signals
+    valid_results = [r for r in results if not isinstance(r, str)]
+    buy1 = [r['Symbol'] for r in valid_results if r['Signals']['Buy1']]
+    buy2 = [r['Symbol'] for r in valid_results if r['Signals']['Buy2']]
+    sell1 = [r['Symbol'] for r in valid_results if r['Signals']['Sell1']]
+
+    # Build signal summary
+    summary_parts = []
+    if buy1: summary_parts.append(f"✅ 1차 매수: {', '.join(buy1)}")
+    if buy2: summary_parts.append(f"🔥 2차 매수: {', '.join(buy2)}")
+    if sell1: summary_parts.append(f"🚀 1차 매도: {', '.join(sell1)}")
+
+    if not summary_parts:
+        summary_text = "금일 매매신호가 탐지되지 않았습니다"
+    else:
+        summary_text = "\n".join(summary_parts)
+
+    # Final text construction (Title + Body)
+    # Header: 📊 nIcK의 미국 증시 브리핑
+    # Body first line: YYYY-MM-DD 매매신호 브리핑이 준비되었습니다.
+    full_text = f"📊 nIcK의 미국 증시 브리핑\n{market_date} 매매신호 브리핑이 준비되었습니다.\n\n{summary_text}"
     
+    # Kakao Text template limit is 200 chars
+    if len(full_text) > 200:
+        full_text = full_text[:197] + "..."
+
     template_object = {
         "object_type": "text",
-        "text": f"📊 Daily US Stock Briefing\n{k_date} Major ETF analysis report is ready.",
+        "text": full_text,
         "link": {
             "web_url": briefing_url,
             "mobile_web_url": briefing_url
         },
-        "button_title": "View Report"
+        "button_title": "상세 리포트 보기"
     }
     
     payload = {
@@ -821,8 +842,13 @@ def send_kakao_link(briefing_url):
 
 if __name__ == "__main__":
     # Market closed check
+    # Instead of just bool, we can get the target date string
+    ny_tz = ZoneInfo("America/New_York")
+    now_ny = datetime.now(ny_tz)
+    market_date_str = now_ny.strftime('%Y-%m-%d')
+
     if not check_market_status():
-        print("Main: Skipping briefing generation because the market was closed.")
+        print(f"Main: Skipping briefing generation because the market was closed on {market_date_str}.")
         exit(0)
 
     report_data = []
@@ -839,5 +865,5 @@ if __name__ == "__main__":
     briefing_url = f"https://{GITHUB_USER}.github.io/{REPO_NAME}/"
     
     # Send KakaoTalk Link
-    send_kakao_link(briefing_url)
+    send_kakao_link(briefing_url, report_data, market_date_str)
 

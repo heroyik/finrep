@@ -15,7 +15,11 @@ FinRep is an automated system that fetches daily closing prices and technical in
   - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.
   - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.
 - **Visualized Report**: Generates a sleek, dark-themed HTML report (Fully English) hosted on GitHub Pages with **KST Timezone** support.
-- **KakaoTalk Integration**: Sends a summary message with a direct "View Report" button via KakaoTalk.
+- **Smart KakaoTalk Notifications**:
+  - **Dynamic Signal Summary**: Instantly see which tickers triggered **1st Buy**, **2nd Buy**, or **1st Sell** directly in the message body.
+  - **Contextual Brilliance**: Automatically hides signal categories with no detected tickers to keep the notification clean.
+  - **US Market Date**: Specifically mentions the actual US trading date analyzed, ensuring alignment with market hours.
+  - **Quick Access**: Features a direct **"상세 리포트 보기"** (View Detailed Report) button for deep-dive analysis.
 - **Smart Scheduling**:
   - **Holiday Detection**: Automatically checks US market status (SPY chart) and skips generation on holidays or weekends.
   - **Daily Automation**: Runs every day at 7:00 AM KST via GitHub Actions.
