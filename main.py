@@ -94,19 +94,14 @@ def fetch_and_analyze(ticker_symbol):
         c_ema60 = last_row['EMA60'] if not pd.isna(last_row['EMA60']) else 0
         c_ema120 = last_row['EMA120'] if not pd.isna(last_row['EMA120']) else 0
         
-        # 1st Buy: EMA20 < EMA60 < EMA120 (Bearish Alignment)
-        is_buy_1 = (c_ema20 < c_ema60) and (c_ema60 < c_ema120) and (c_ema20 > 0)
+        # 1st Buy: Bearish Alignment (20 < 60 < 120) AND Close < EMA20
+        is_buy_1 = (c_ema20 < c_ema60) and (c_ema60 < c_ema120) and (c_ema20 > 0) and (current_close < c_ema20)
         
         # 2nd Buy: 1st Buy Condition Met AND RSI < 30
         is_buy_2 = is_buy_1 and (c_rsi < 30)
         
-        # 1st Sell: EMA20 > EMA60, EMA120 (Bullish Alignment or 20 is highest) AND RSI > 70
-        # User request: "EMA(20) > EMA(60), EMA(120)" -> 20 is greater than 60 and 120.
-        # Whether to apply strict Bullish Alignment (20>60>120) or just 20 being highest.
-        # For symmetry with Buy, using 20 > 60 > 120 (Bullish Alignment) as base,
-        # but 20 > 60 and 20 > 120 could be reasonable for overbought sell.
-        # Defining "Bullish Alignment" as 20 > 60 > 120 here.
-        is_sell_1 = (c_ema20 > c_ema60) and (c_ema60 > c_ema120) and (c_rsi > 70)
+        # 1st Sell: Bullish Alignment (20 > 60 > 120) AND Close > EMA20 AND RSI > 70
+        is_sell_1 = (c_ema20 > c_ema60) and (c_ema60 > c_ema120) and (current_close > c_ema20) and (c_rsi > 70)
 
         result = {
             "Symbol": ticker_symbol,
@@ -679,9 +674,9 @@ def generate_html_report(results):
     html_template += """
                 </div>
                 <div class="strategy-legend">
-                    <div class="strategy-row"><strong>1st Buy:</strong> EMA(20) < EMA(60) < EMA(120) (Bearish Alignment / Bottom Zone)</div>
+                    <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120) + Close < EMA(20)</div>
                     <div class="strategy-row"><strong>2nd Buy:</strong> 1st Buy Conditions Met + RSI(14) < 30 (Deep Oversold)</div>
-                    <div class="strategy-row"><strong>1st Sell:</strong> EMA(20) > EMA(60) > EMA(120) + RSI(14) > 70 (Bullish Alignment / Overheated)</div>
+                    <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120) + Close > EMA(20) + RSI(14) > 70</div>
                 </div>
             </div>
 
