@@ -813,7 +813,7 @@ def send_kakao_link(briefing_url, results, market_date):
     # Final text construction (Title + Body)
     # Header: 📊 nIcK의 미국 증시 브리핑
     # Body first line: YYYY-MM-DD 매매신호 브리핑이 준비되었습니다.
-    full_text = f"📊 nIcK의 미국 증시 브리핑\n{market_date} 매매신호 브리핑이 준비되었습니다.\n\n{summary_text}"
+    full_text = f"📊 nIcK의 미국 증시 브리핑\n{market_date} 매매신호 브리핑이 준비되었습니다.\n{summary_text}"
     
     # Kakao Text template limit is 200 chars
     if len(full_text) > 200:
