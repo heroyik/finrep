@@ -1,6 +1,10 @@
 # 📊 FinRep: Daily US Stock Briefing
 
-FinRep is an automated system that fetches daily closing prices and technical indicators (RSI, EMA) for specific US stocks and sends a visualized **Daily US Stock Briefing** to KakaoTalk.
+<p align="center">
+  <img src="stock_briefing_icon.jpg" width="128" alt="FinRep Icon">
+</p>
+
+FinRep is an automated, high-precision system designed to empower investors with daily insights. It meticulously analyzes closing prices, technical indicators (RSI, EMA), and market sentiment for a curated list of US stocks/ETFs, delivering a visually stunning and actionable briefing directly to KakaoTalk.
 
 ## 🚀 Key Features
 
@@ -17,12 +21,13 @@ FinRep is an automated system that fetches daily closing prices and technical in
 - **Visualized Report**: Generates a sleek, dark-themed HTML report (Fully English) hosted on GitHub Pages with **KST Timezone** support.
 - **Smart KakaoTalk Notifications**:
   - **Dynamic Signal Summary**: Instantly see which tickers triggered **1st Buy**, **2nd Buy**, or **1st Sell** directly in the message body.
-  - **Contextual Brilliance**: Automatically hides signal categories with no detected tickers to keep the notification clean.
-  - **US Market Date**: Specifically mentions the actual US trading date analyzed, ensuring alignment with market hours.
-  - **Quick Access**: Features a direct **"상세 리포트 보기"** (View Detailed Report) button for deep-dive analysis.
-- **Smart Scheduling**:
-  - **Holiday Detection**: Automatically checks US market status (SPY chart) and skips generation on holidays or weekends.
-  - **Daily Automation**: Runs every day at 7:00 AM KST via GitHub Actions.
+  - **nIcK's Exclusive Briefing**: Customized branding and header for a personalized experience.
+  - **Contextual Brilliance**: Automatically hides signal categories with no detected tickers, ensuring zero clutter.
+  - **US Market Date Integration**: Specifically mentions the actual US trading date analyzed, synchronizing perfectly with market hours.
+  - **One-Tap Access**: Features a direct **"상세 리포트 보기"** (View Detailed Report) button for a deep-dive into the full analysis.
+- **Smart Scheduling & Reliability**:
+  - **Intelligent Holiday Detection**: Automatically monitors US market status (via SPY) to skip generation during holidays or weekends.
+  - **Zero-Touch Automation**: Runs with 100% reliability every day at 7:00 AM KST via GitHub Actions.
 
 ## 🔗 Live Report
 
