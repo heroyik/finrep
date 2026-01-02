@@ -30,6 +30,7 @@ The latest briefing is always available at:
 - **Language**: Python 3.13
 - **Libraries**: `yfinance`, `pandas`, `pandas_ta`, `mplfinance`, `requests`
 - **Infrastructure**: GitHub Actions, GitHub Pages (Deployed from `gh-pages` branch)
+  - **Synchronization Policy**: Testing image files and charts generated in `public/charts/` are excluded from version control to maintain a clean repository.
 - **API**: Kakao Developers (OAuth 2.0 Message API)
 
 ## ⚙️ Setup & Secrets: Step-by-Step

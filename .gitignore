@@ -12,3 +12,6 @@ ENV/
 
 # OS
 .DS_Store
+
+# Build artifacts/Testing
+public/charts/
