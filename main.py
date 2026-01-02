@@ -9,12 +9,12 @@ from datetime import datetime, timedelta, timezone
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Python 3.9 미만 호환성 (하지만 3.13 사용중이므로 문제없음)
+    # Compatibility for Python versions below 3.9 (not an issue since we use 3.13)
     from datetime import timezone as ZoneInfo
 import json
 from dotenv import load_dotenv
 
-# 환경 변수 로드 (로컬 테스트용)
+# Load environment variables (for local testing)
 load_dotenv()
 
 TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL"]
@@ -22,7 +22,7 @@ KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
 
-# 종목별 기초자산 매핑 (뉴스 수집용)
+# Underlying asset mapping for each ticker (for news collection)
 UNDERLYING_MAP = {
     "BITU": "BTC-USD",
     "ORCX": "ORCL",
@@ -32,7 +32,7 @@ UNDERLYING_MAP = {
     "OKLL": "OKLO"
 }
 
-# 메이저 뉴스 매체 리스트
+# List of major publishers
 MAJOR_PUBLISHERS = [
     "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
     "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
@@ -46,30 +46,30 @@ def fetch_and_analyze(ticker_symbol):
         df = ticker.history(period="1y")
         
         if df.empty:
-            return f"❌ {ticker_symbol}: 데이터를 가져올 수 없습니다."
+            return f"❌ {ticker_symbol}: Unable to fetch data."
 
-        # 종목명 가져오기 (Fast Info 없을 경우 대비)
+        # Get long name (fallback if Fast Info is missing)
         long_name = ""
         try:
-            # info 호출은 느릴 수 있으므로 타임아웃/예외처리 필요하나 간편하게 시도
-            # fast_info는 name 제공 안함. info 사용.
+            # info call might be slow, so timeout/exception handling needed but simplified here.
+            # fast_info doesn't provide name. Using info.
             long_name = ticker.info.get('longName', ticker.info.get('shortName', ''))
         except:
             long_name = ""
 
-        # 지표 계산
+        # Calculate indicators
         df['RSI'] = ta.rsi(df['Close'], length=14)
         df['EMA20'] = ta.ema(df['Close'], length=20)
         df['EMA60'] = ta.ema(df['Close'], length=60)
         df['EMA120'] = ta.ema(df['Close'], length=120)
 
-        # 종가 정보
+        # Close price information
         last_row = df.iloc[-1]
         prev_close = df.iloc[-2]['Close']
         current_close = last_row['Close']
         change_pct = ((current_close - prev_close) / prev_close) * 100
 
-        # 시간외 정보
+        # After-hours information
         after_hours_price = None
         after_hours_change = None
         try:
@@ -80,32 +80,32 @@ def fetch_and_analyze(ticker_symbol):
         except:
             pass
 
-        # 차트 생성
+        # Generate chart
         chart_filename = f"{ticker_symbol}_chart.png"
         generate_chart(ticker_symbol, df, chart_filename)
 
-        # 뉴스 수집
+        # Fetch news
         news = fetch_news(ticker_symbol)
 
-        # 전략 신호 분석
-        # NaN 체크
+        # Analyze strategy signals
+        # NaN check
         c_rsi = last_row['RSI'] if not pd.isna(last_row['RSI']) else 50
         c_ema20 = last_row['EMA20'] if not pd.isna(last_row['EMA20']) else 0
         c_ema60 = last_row['EMA60'] if not pd.isna(last_row['EMA60']) else 0
         c_ema120 = last_row['EMA120'] if not pd.isna(last_row['EMA120']) else 0
         
-        # 1차 매수: EMA20 < EMA60 < EMA120 (역배열)
+        # 1st Buy: EMA20 < EMA60 < EMA120 (Bearish Alignment)
         is_buy_1 = (c_ema20 < c_ema60) and (c_ema60 < c_ema120) and (c_ema20 > 0)
         
-        # 2차 매수: 1차 매수 충족 AND RSI < 30
+        # 2nd Buy: 1st Buy Condition Met AND RSI < 30
         is_buy_2 = is_buy_1 and (c_rsi < 30)
         
-        # 1차 매도: EMA20 > EMA60, EMA120 (정배열 가정 혹은 20이 가장 높음) AND RSI > 70
-        # 사용자 요청: "EMA(20) > EMA(60), EMA(120)" -> 20이 60, 120보다 큼.
-        # 엄격한 정배열(20>60>120)을 적용할지, 단순히 20이 짱인 경우를 볼지.
-        # 매수와 대칭성을 위해 20 > 60 > 120 (정배열)을 기준으로 잡되,
-        # 문맥상 과열권 매도이므로 20 > 60 and 20 > 120 조건이 합리적일 수 있음.
-        # 여기서는 "정배열(Bullish Alignment)"인 20 > 60 > 120 으로 정의하겠습니다.
+        # 1st Sell: EMA20 > EMA60, EMA120 (Bullish Alignment or 20 is highest) AND RSI > 70
+        # User request: "EMA(20) > EMA(60), EMA(120)" -> 20 is greater than 60 and 120.
+        # Whether to apply strict Bullish Alignment (20>60>120) or just 20 being highest.
+        # For symmetry with Buy, using 20 > 60 > 120 (Bullish Alignment) as base,
+        # but 20 > 60 and 20 > 120 could be reasonable for overbought sell.
+        # Defining "Bullish Alignment" as 20 > 60 > 120 here.
         is_sell_1 = (c_ema20 > c_ema60) and (c_ema60 > c_ema120) and (c_rsi > 70)
 
         result = {
@@ -129,7 +129,7 @@ def fetch_and_analyze(ticker_symbol):
         }
         return result
     except Exception as e:
-        return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
+        return f"❌ {ticker_symbol}: Error occurred - {str(e)}"
 
 def fetch_news(ticker_symbol):
     underlying = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
@@ -142,15 +142,15 @@ def fetch_news(ticker_symbol):
             return []
 
         for n in news_list:
-            # yfinance news 구조 대응 (데이터가 'content' 필드 내부에 있음)
+            # Handle yfinance news structure (data is inside 'content' field)
             content = n.get('content', n) 
             title = content.get('title')
             
-            # publisher 확인
+            # Check publisher
             provider = content.get('provider', {})
             publisher = provider.get('name', content.get('publisher', 'Unknown'))
             
-            # link 확인 (canonicalUrl or clickThroughUrl)
+            # Check link (canonicalUrl or clickThroughUrl)
             link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
             link = link_obj.get('url', content.get('link'))
             
@@ -166,7 +166,7 @@ def fetch_news(ticker_symbol):
             if len(filtered_news) >= 3:
                 break
         
-        # 필터링된 뉴스가 부족하면 상위 뉴스 그냥 노출 (백업)
+        # Fallback: display top news if filtered news count is low
         if len(filtered_news) < 3:
             for n in news_list:
                 content = n.get('content', n)
@@ -193,13 +193,13 @@ def fetch_news(ticker_symbol):
         return []
 
 def generate_chart(symbol, df, filename):
-    # 최근 60영업일 데이터만 사용 (차트 가독성)
+    # Use only recent 60 trading days (Chart Readability)
     plot_df = df.tail(60).copy()
     
-    # 공백 데이터 제거
+    # Remove empty data
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정 (데이터가 존재하는 경우에만 추가)
+    # EMA line settings (Add only if data exists)
     apds = []
     
     # EMA 20
@@ -210,7 +210,7 @@ def generate_chart(symbol, df, filename):
     if 'EMA60' in plot_df.columns and not plot_df['EMA60'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'))
         
-    # EMA 120 (상장 초기 종목 등 데이터 부족 시 제외)
+    # EMA 120 (Exclude if insufficient data, e.g., newly listed stocks)
     if 'EMA120' in plot_df.columns and not plot_df['EMA120'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'))
         
@@ -218,7 +218,7 @@ def generate_chart(symbol, df, filename):
     if 'RSI' in plot_df.columns and not plot_df['RSI'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False))
     
-    # 미니멀 스타일 설정
+    # Minimal style settings
     mc = mpf.make_marketcolors(up='#10b981', down='#f43f5e', edge='inherit', wick='inherit', volume='inherit')
     style = mpf.make_mpf_style(
         marketcolors=mc, 
@@ -229,20 +229,20 @@ def generate_chart(symbol, df, filename):
         rc={'font.family': 'sans-serif', 'font.size': 6.5}
     )
     
-    # 차트 폴더 생성
+    # Create chart folder
     if not os.path.exists("public/charts"):
         os.makedirs("public/charts")
     
-    # 차트 저장
+    # Save chart
     full_path = os.path.join("public/charts", filename)
     
-    # 여백을 넉넉하게 설정하여 차트 본문(박스)을 정중앙에 배치
+    # Set sufficient margins to center the chart body (box)
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
         addplot=apds,
         volume=False,
-        figratio=(12, 8), # 가로세로 비율 조정
+        figratio=(12, 8), # Adjusted aspect ratio
         style=style,
         returnfig=True,
         panel_ratios=(2, 1),
@@ -251,23 +251,23 @@ def generate_chart(symbol, df, filename):
         ylabel_lower=''
     )
     
-    # 사용자 피드백 반영: 왼쪽 여백을 오렌지 가이드라인에 맞춰 축소 (0.2 -> 0.12)
-    # 우측 여백은 유지 (right=0.8)
-    # 상하 여백은 기존 유지 (top=0.8, bottom=0.2)
+    # Reflect user feedback: Reduce left margin per orange guideline (0.2 -> 0.12)
+    # Maintain right margin (right=0.8)
+    # Maintain top/bottom margins (top=0.8, bottom=0.2)
     plt.subplots_adjust(left=0.12, right=0.8, top=0.8, bottom=0.2)
     
-    # Legend 설정 (심플하게)
+    # Legend settings (Simple)
     axes[0].legend(loc='upper left', fontsize=6, frameon=False)
     
-    # RSI 수평선
+    # RSI Horizontal lines
     axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
     axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
     
-    # 축 설정 정리
+    # Axis alignment settings
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
     
-    # 폰트 및 틱 설정 (숫자가 차트 박스 밖으로 여유 있게 나오도록 pad 조정)
+    # Font and tick settings (Adjust pad so numbers appear outside the chart box with sufficient space)
     for ax in axes:
         ax.tick_params(axis='y', labelsize=6, pad=5)
         ax.tick_params(axis='x', labelsize=6, pad=5)
@@ -276,7 +276,7 @@ def generate_chart(symbol, df, filename):
     plt.close()
 
 def get_access_token():
-    """Refresh Token을 이용해 새로운 Access Token 발급"""
+    """Refresh Token to issue new Access Token"""
     url = "https://kauth.kakao.com/oauth/token"
     data = {
         "grant_type": "refresh_token",
@@ -294,31 +294,31 @@ def get_access_token():
 
 def check_market_status():
     """
-    SPY(S&P 500 ETF)의 마지막 거래일을 확인하여
-    전일 미국 증시가 휴장이었는지 판단.
+    Check the last trading day of SPY (S&P 500 ETF) to 
+    determine if the US market was closed on the previous day.
     """
     try:
-        # 1. 현재 미국 동부 시간 (New York) 확인
-        # Github Actions는 KST 07:00에 실행됨 -> 미국은 전날 17:00/18:00 (장 마감 후)
-        # 따라서 "미국 현지 날짜"가 "마지막 거래일"과 같은지 확인하면 됨.
+        # 1. Check current US Eastern Time (New York)
+        # Github Actions runs at 07:00 KST -> US is 17:00/18:00 the previous day (after market close)
+        # Check if "US Local Date" matches "Last Trading Day".
         ny_tz = ZoneInfo("America/New_York")
         now_ny = datetime.now(ny_tz)
         target_date_str = now_ny.strftime('%Y-%m-%d')
         print(f"Checking market status for US Date: {target_date_str}")
 
-        # 2. SPY 데이터 조회 (최근 5일치)
+        # 2. Query SPY data (last 5 days)
         spy = yf.Ticker("SPY")
         hist = spy.history(period="5d")
         
         if hist.empty:
             print("❌ Critical: Unable to fetch SPY data for market check.")
-            return False # 안전하게 진행 (혹은 중단 결정 필요)
+            return False # Proceed safely (or decide to stop)
 
         last_date = hist.index[-1].date()
         last_date_str = last_date.strftime('%Y-%m-%d')
         print(f"Latest market data available: {last_date_str}")
 
-        # 3. 휴장 여부 판단
+        # 3. Determine if market was closed
         if last_date_str != target_date_str:
             print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {last_date_str})")
             return False
@@ -328,13 +328,13 @@ def check_market_status():
 
     except Exception as e:
         print(f"Warning: Market status check failed: {e}")
-        # 체크 실패 시 일단 진행 (안전장치)
+        # Proceed if check fails (safety measure)
         return True
 
 
 
 def generate_html_report(results):
-    # KST 시간 설정 (UTC+9)
+    # Set KST time (UTC+9)
     now_utc = datetime.now(timezone.utc)
     now_kst = now_utc + timedelta(hours=9)
     date_str = now_kst.strftime('%Y-%m-%d %H:%M:%S KST')
@@ -633,7 +633,7 @@ def generate_html_report(results):
     # 1. 1st Buy List
     if buy1_tickers:
         html_template += """
-                    <!-- 1차 매수 -->
+                    <!-- 1st Buy -->
                     <div class="dash-item">
                         <div class="dash-title">Bullish Setup (1st Buy)</div>
                         <div class="ticker-badges">
@@ -648,7 +648,7 @@ def generate_html_report(results):
     # 2. 2nd Buy List
     if buy2_tickers:
         html_template += """
-                    <!-- 2차 매수 -->
+                    <!-- 2nd Buy -->
                     <div class="dash-item">
                         <div class="dash-title">Oversold & Bullish (2nd Buy)</div>
                         <div class="ticker-badges">
@@ -663,7 +663,7 @@ def generate_html_report(results):
     # 3. Sell List
     if sell1_tickers:
         html_template += """
-                    <!-- 1차 매도 -->
+                    <!-- 1st Sell -->
                     <div class="dash-item">
                         <div class="dash-title">Overbought & Peak (Sell)</div>
                         <div class="ticker-badges">
@@ -795,19 +795,19 @@ def send_kakao_link(briefing_url):
         "Authorization": f"Bearer {access_token}"
     }
 
-    # 이미지 URL 및 템플릿 최적화
-    # 가장 단순하고 확실한 'text' 템플릿으로 변경하여 버튼 활성화 테스트
+    # Optimize Image URL and Template
+    # Changed to simplest 'text' template to test button activation
     now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
     k_date = now_kst.strftime('%Y-%m-%d')
     
     template_object = {
         "object_type": "text",
-        "text": f"📊 오늘의 미국 증시 브리핑\n{k_date} 주요 ETF 분석 리포트가 준비되었습니다.",
+        "text": f"📊 Daily US Stock Briefing\n{k_date} Major ETF analysis report is ready.",
         "link": {
             "web_url": briefing_url,
             "mobile_web_url": briefing_url
         },
-        "button_title": "리포트 보기"
+        "button_title": "View Report"
     }
     
     payload = {
@@ -822,7 +822,7 @@ def send_kakao_link(briefing_url):
         raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
-    # 휴장일 체크
+    # Market closed check
     if not check_market_status():
         print("Main: Skipping briefing generation because the market was closed.")
         exit(0)
@@ -832,14 +832,14 @@ if __name__ == "__main__":
         print(f"Analyzing {ticker}...")
         report_data.append(fetch_and_analyze(ticker))
     
-    # HTML 리포트 생성
+    # Generate HTML report
     generate_html_report(report_data)
     
-    # GitHub Pages URL (사용자 계정과 레포 이름에 맞게 수정 필요)
+    # GitHub Pages URL (Modify according to user account and repo name)
     GITHUB_USER = "heroyik"
     REPO_NAME = "finrep"
     briefing_url = f"https://{GITHUB_USER}.github.io/{REPO_NAME}/"
     
-    # 카카오톡 링크 전송
+    # Send KakaoTalk Link
     send_kakao_link(briefing_url)
 
