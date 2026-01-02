@@ -4,7 +4,7 @@ FinRep is an automated system that fetches daily closing prices and technical in
 
 ## 🚀 Key Features
 
-- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL).
+- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL, USD, GGLL).
 - **Dynamic Signal Dashboard**: Instantly highlights assets triggering specific trading setups:
   - **1st Buy**: Bearish Alignment (20 < 60 < 120) + Close < EMA(20).
   - **2nd Buy**: 1st Buy condition met + RSI < 30 (Deep Oversold).

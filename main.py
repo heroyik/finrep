@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 # Load environment variables (for local testing)
 load_dotenv()
 
-TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL"]
+TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL", "USD", "GGLL"]
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
@@ -29,7 +29,9 @@ UNDERLYING_MAP = {
     "PLTG": "PLTR",
     "CRWU": "CRWV",
     "CCUP": "CRCL",
-    "OKLL": "OKLO"
+    "OKLL": "OKLO",
+    "USD": "SOXX",
+    "GGLL": "GOOGL"
 }
 
 # List of major publishers
