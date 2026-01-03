@@ -38,9 +38,11 @@ UNDERLYING_MAP = {
 MAJOR_PUBLISHERS = [
     "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
     "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
-    "The New York Times", "NYT", "The Economist", "Barrons", "Investor's Business Daily", "IBD",
-    "Yahoo Finance"
+    "The New York Times", "NYT", "The Economist", "Barrons", "Yahoo Finance"
 ]
+
+# Explicitly excluded publishers (Subscription bait, etc.)
+EXCLUDED_PUBLISHERS = ["Motley Fool", "Investor's Business Daily", "IBD", "Zacks"]
 
 def fetch_and_analyze(ticker_symbol):
     try:
@@ -148,6 +150,9 @@ def fetch_news(ticker_symbol):
         if not news_list:
             return []
 
+        seen_titles = set()
+        seen_links = set()
+
         for n in news_list:
             # Handle yfinance news structure (data is inside 'content' field)
             content = n.get('content', n) 
@@ -163,37 +168,40 @@ def fetch_news(ticker_symbol):
             
             if not title or not link or title == "None": continue
             
-            if any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS):
+            # Cleaning title for better dedup matching
+            clean_title = title.strip()
+            
+            # 1. Deduplication (Check Title and Link)
+            if clean_title in seen_titles or link in seen_links:
+                continue
+            
+            # 2. Block Excluded Publishers
+            # Check if any excluded keyword is in the publisher name
+            if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS):
+                continue
+                
+            # 3. Allow Only Major Publishers
+            is_major = any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS)
+            
+            # Additional Check: "Yahoo Finance" sometimes aggregates others. 
+            # If publisher is "Yahoo Finance", we accept it, unless the title screams clickbait (hard to detect simply).
+            # For now, relying on Publisher Allowlist.
+            
+            if is_major:
                 filtered_news.append({
-                    "title": title,
+                    "title": clean_title,
                     "publisher": publisher,
                     "link": link
                 })
+                seen_titles.add(clean_title)
+                seen_links.add(link)
             
             if len(filtered_news) >= 3:
                 break
         
-        # Fallback: display top news if filtered news count is low
-        if len(filtered_news) < 3:
-            for n in news_list:
-                content = n.get('content', n)
-                title = content.get('title')
-                provider = content.get('provider', {})
-                publisher = provider.get('name', content.get('publisher', 'Market News'))
-                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
-                link = link_obj.get('url', content.get('link'))
-                
-                if not title or not link or title == "None": continue
-                
-                if title not in [fn['title'] for fn in filtered_news]:
-                    filtered_news.append({
-                        "title": title,
-                        "publisher": publisher,
-                        "link": link
-                    })
-                if len(filtered_news) >= 3:
-                    break
-                    
+        # NOTE: Fallback logic removed to ensure quality. 
+        # If filtered_news < 3, we simply show fewer news.
+
         return filtered_news
     except Exception as e:
         print(f"Error fetching news for {underlying}: {e}")
