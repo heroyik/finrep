@@ -96,14 +96,24 @@ def fetch_and_analyze(ticker_symbol):
         c_ema60 = last_row['EMA60'] if not pd.isna(last_row['EMA60']) else 0
         c_ema120 = last_row['EMA120'] if not pd.isna(last_row['EMA120']) else 0
         
-        # 1st Buy: Bearish Alignment (20 < 60 < 120) AND Close < EMA20
-        is_buy_1 = (c_ema20 < c_ema60) and (c_ema60 < c_ema120) and (c_ema20 > 0) and (current_close < c_ema20)
+        # 1st Buy: Bearish Alignment (20 < 60 < 120*) AND Close < EMA20
+        # *EMA 120 is included in alignment check only if available (for new listings)
+        alignment_buy = (c_ema20 < c_ema60)
+        if c_ema120 > 0:
+            alignment_buy = alignment_buy and (c_ema60 < c_ema120)
+            
+        is_buy_1 = alignment_buy and (c_ema20 > 0) and (current_close < c_ema20)
         
         # 2nd Buy: 1st Buy Condition Met AND RSI < 30
         is_buy_2 = is_buy_1 and (c_rsi < 30)
         
-        # 1st Sell: Bullish Alignment (20 > 60 > 120) AND Close > EMA20 AND RSI > 70
-        is_sell_1 = (c_ema20 > c_ema60) and (c_ema60 > c_ema120) and (current_close > c_ema20) and (c_rsi > 70)
+        # 1st Sell: Bullish Alignment (20 > 60 > 120*) AND Close > EMA20 AND RSI > 70
+        # *EMA 120 is included in alignment check only if available (for new listings)
+        alignment_sell = (c_ema20 > c_ema60)
+        if c_ema120 > 0:
+            alignment_sell = alignment_sell and (c_ema60 > c_ema120)
+
+        is_sell_1 = alignment_sell and (current_close > c_ema20) and (c_rsi > 70)
 
         result = {
             "Symbol": ticker_symbol,
@@ -676,9 +686,10 @@ def generate_html_report(results):
     html_template += """
                 </div>
                 <div class="strategy-legend">
-                    <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120) + Close < EMA(20)</div>
+                    <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120*) + Close < EMA(20)</div>
                     <div class="strategy-row"><strong>2nd Buy:</strong> 1st Buy Conditions Met + RSI(14) < 30 (Deep Oversold)</div>
-                    <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120) + Close > EMA(20) + RSI(14) > 70</div>
+                    <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI(14) > 70</div>
+                    <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
             </div>
 
