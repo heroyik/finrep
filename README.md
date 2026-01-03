@@ -1,8 +1,6 @@
 # 📊 FinRep: Daily US Stock Briefing
 
-<p align="center">
-  <img src="stock_briefing_icon.jpg" width="128" alt="FinRep Icon">
-</p>
+![FinRep Icon](stock_briefing_icon.jpg)
 
 FinRep is an automated, high-precision system designed to empower investors with daily insights. It meticulously analyzes closing prices, technical indicators (RSI, EMA), and market sentiment for a curated list of US stocks/ETFs, delivering a visually stunning and actionable briefing directly to KakaoTalk.
 
