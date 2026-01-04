@@ -99,7 +99,7 @@ class TestFetchNews(unittest.TestCase):
         mock_ticker_instance.news = self.mock_news_data
 
         # Run function
-        results = main.fetch_news("AAPL")
+        results, asset = main.fetch_news("AAPL")
 
         # Assertions
         print(f"\nTested with {len(self.mock_news_data)} articles Mixed with valid, bail, duplicates, and minor sources.")

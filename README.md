@@ -12,7 +12,7 @@ FinRep is an automated, high-precision system designed to empower investors with
   - **2nd Buy**: 1st Buy condition met + RSI < 30 (Deep Oversold).
   - **1st Sell**: Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI > 70. (*EMA 120 is optional for new listings)
   Empty signals are automatically hidden for clarity.
-- **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., Bitcoin) to provide context.
+- **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., BTC-USD) and explicitly indicates the base asset in the report for better context.
 - **Premium Charting**:
   - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.
   - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.

@@ -89,7 +89,7 @@ def fetch_and_analyze(ticker_symbol):
         generate_chart(ticker_symbol, df, chart_filename)
 
         # Fetch news
-        news = fetch_news(ticker_symbol)
+        news, news_asset = fetch_news(ticker_symbol)
 
         # Analyze strategy signals
         # NaN check
@@ -130,6 +130,7 @@ def fetch_and_analyze(ticker_symbol):
             "EMA120": round(c_ema120, 2),
             "Chart": chart_filename,
             "News": news,
+            "NewsAsset": news_asset,
             "Signals": {
                 "Buy1": is_buy_1,
                 "Buy2": is_buy_2,
@@ -202,10 +203,10 @@ def fetch_news(ticker_symbol):
         # NOTE: Fallback logic removed to ensure quality. 
         # If filtered_news < 3, we simply show fewer news.
 
-        return filtered_news
+        return filtered_news, underlying
     except Exception as e:
         print(f"Error fetching news for {underlying}: {e}")
-        return []
+        return [], underlying
 
 def generate_chart(symbol, df, filename):
     # Use only recent 60 trading days (Chart Readability)
@@ -749,7 +750,7 @@ def generate_html_report(results):
                     
                     <div class="news-section">
                         <div class="news-header">
-                            <span>📰</span> Related News & Market Insights
+                            <span>📰</span> Related News & Market {f"({res['NewsAsset']} Insights)" if res['NewsAsset'] != res['Symbol'] else "Insights"}
                         </div>
                         <div class="news-list">
         """
