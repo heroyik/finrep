@@ -178,16 +178,11 @@ def fetch_news(ticker_symbol):
                 continue
             
             # 2. Block Excluded Publishers
-            # Check if any excluded keyword is in the publisher name
             if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS):
                 continue
                 
             # 3. Allow Only Major Publishers
             is_major = any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS)
-            
-            # Additional Check: "Yahoo Finance" sometimes aggregates others. 
-            # If publisher is "Yahoo Finance", we accept it, unless the title screams clickbait (hard to detect simply).
-            # For now, relying on Publisher Allowlist.
             
             if is_major:
                 filtered_news.append({
@@ -200,6 +195,25 @@ def fetch_news(ticker_symbol):
             
             if len(filtered_news) >= 3:
                 break
+        
+        # Fallback: If no major news found, try to include any news (excluding blocked)
+        if len(filtered_news) == 0:
+            for n in news_list:
+                content = n.get('content', n)
+                title = content.get('title')
+                provider = content.get('provider', {})
+                publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
+                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+                link = link_obj.get('url', content.get('link'))
+                if not title or not link or title == "None": continue
+                if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS): continue
+                
+                filtered_news.append({
+                    "title": title.strip(),
+                    "publisher": publisher,
+                    "link": link
+                })
+                if len(filtered_news) >= 2: break
         
         # NOTE: Fallback logic removed to ensure quality. 
         # If filtered_news < 3, we simply show fewer news.
