@@ -12,6 +12,7 @@ except ImportError:
     # Compatibility for Python versions below 3.9 (not an issue since we use 3.13)
     from datetime import timezone as ZoneInfo
 import json
+import argparse
 from dotenv import load_dotenv
 
 # Load environment variables (for local testing)
@@ -349,7 +350,7 @@ def check_market_status():
 
 
 
-def generate_html_report(results):
+def generate_html_report(results, filename="index.html"):
     # Set KST time (UTC+9)
     now_utc = datetime.now(timezone.utc)
     now_kst = now_utc + timedelta(hours=9)
@@ -796,10 +797,10 @@ def generate_html_report(results):
     if not os.path.exists("public"):
         os.makedirs("public")
     
-    report_path = os.path.join("public", "index.html")
+    report_path = os.path.join("public", filename)
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_template)
-    print(f"HTML report generated: {report_path}")
+    print(f"HTML report {filename} generated: {report_path}")
 
 def send_kakao_link(briefing_url, results, market_date):
     if not KAKAO_REST_API_KEY or not KAKAO_REFRESH_TOKEN:
@@ -861,13 +862,16 @@ def send_kakao_link(briefing_url, results, market_date):
         raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="FinRep: Daily US Stock Briefing")
+    parser.add_argument("--manual", action="store_true", help="Run in manual mode (generates man_issue.html, skips Kakao notification)")
+    args = parser.parse_args()
+
     # Market closed check
-    # Instead of just bool, we can get the target date string
     ny_tz = ZoneInfo("America/New_York")
     now_ny = datetime.now(ny_tz)
     market_date_str = now_ny.strftime('%Y-%m-%d')
 
-    if not check_market_status():
+    if not args.manual and not check_market_status():
         print(f"Main: Skipping briefing generation because the market was closed on {market_date_str}.")
         exit(0)
 
@@ -877,13 +881,21 @@ if __name__ == "__main__":
         report_data.append(fetch_and_analyze(ticker))
     
     # Generate HTML report
-    generate_html_report(report_data)
+    if args.manual:
+        # Manual mode: generate both for testing/testing visibility
+        generate_html_report(report_data, "man_issue.html")
+        generate_html_report(report_data, "index.html")
+    else:
+        generate_html_report(report_data, "index.html")
     
-    # GitHub Pages URL (Modify according to user account and repo name)
+    # GitHub Pages URL
     GITHUB_USER = "heroyik"
     REPO_NAME = "finrep"
     briefing_url = f"https://{GITHUB_USER}.github.io/{REPO_NAME}/"
     
-    # Send KakaoTalk Link
-    send_kakao_link(briefing_url, report_data, market_date_str)
+    # Send KakaoTalk Link (Skip in manual mode)
+    if not args.manual:
+        send_kakao_link(briefing_url, report_data, market_date_str)
+    else:
+        print("Manual mode: Skipping KakaoTalk notification.")
 
