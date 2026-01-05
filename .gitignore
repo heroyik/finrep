@@ -14,4 +14,4 @@ ENV/
 .DS_Store
 
 # Build artifacts/Testing
-public/charts/
+# public/charts/

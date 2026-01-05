@@ -38,8 +38,8 @@ jobs:
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
         run: python main.py
 
-      - name: Prepare for deployment (Include ignored charts)
-        run: rm .gitignore
+      - name: Debug public directory
+        run: ls -R public
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
