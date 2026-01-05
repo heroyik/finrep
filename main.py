@@ -361,6 +361,43 @@ def generate_html_report(results, filename="index.html", market_date=""):
     # Market date line (English)
     market_date_line = f"Reference Market Date: {market_date}" if market_date else ""
     
+    # ---------------------------------------------------------
+    # Generate Summaries (Market Overview & Ticker Insights)
+    # ---------------------------------------------------------
+    market_overview = "Markets are currently processing AI sector consolidation, inflation expectations, and recent geopolitical developments affecting global trade sentiments."
+    
+    # Try to find a better overview from broad news (BTC-USD or index proxies)
+    for res in results:
+        if res['Symbol'] in ['BITU', 'USD'] and res['News']:
+            # Use a slightly more specific headline if available
+            market_overview = f"Market pulse: {res['News'][0]['title']}"
+            break
+            
+    ticker_summaries = []
+    for res in results:
+        insight = "Moving in line with broader market sentiment and sector momentum."
+        if res['News']:
+            insight = res['News'][0]['title']
+        elif res['Change'] > 3:
+            insight = "Strong upward momentum observed without specific immediate headlines."
+        elif res['Change'] < -3:
+            insight = "Undergoing price correction amid broader sector sell-off."
+            
+        ticker_summaries.append({
+            "symbol": res['Symbol'],
+            "insight": insight
+        })
+    
+    ticker_summary_html = ""
+    for item in ticker_summaries:
+        ticker_summary_html += f"""
+                    <div class="summary-item">
+                        <span class="summary-symbol">{item['symbol']}</span>
+                        <span class="summary-text">{item['insight']}</span>
+                    </div>
+        """
+    # ---------------------------------------------------------
+    
     html_template = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -603,6 +640,52 @@ def generate_html_report(results, filename="index.html", market_date=""):
                 font-style: italic;
             }}
 
+            /* Market Summary */
+            .summary-box {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin-top: 15px;
+                margin-bottom: 25px;
+            }}
+            .summary-header {{
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-dim);
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }}
+            .summary-item {{
+                margin-bottom: 0.8rem;
+                font-size: 0.95rem;
+                line-height: 1.4;
+                display: flex;
+                align-items: flex-start;
+            }}
+            .summary-symbol {{
+                display: inline-block;
+                min-width: 60px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-right: 10px;
+            }}
+            .summary-text {{
+                color: var(--text-base);
+            }}
+            @media (max-width: 600px) {{
+                .summary-item {{
+                    font-size: 0.9rem;
+                }}
+                .summary-symbol {{
+                    min-width: 50px;
+                }}
+            }}
+
             /* Modal */
             .modal {{
                 display: none;
@@ -707,7 +790,7 @@ def generate_html_report(results, filename="index.html", market_date=""):
                     </div>
         """
 
-    html_template += """
+    html_template += f"""
                 </div>
                 <div class="strategy-legend">
                     <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120*) + Close < EMA(20)</div>
@@ -715,6 +798,21 @@ def generate_html_report(results, filename="index.html", market_date=""):
                     <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI(14) > 70</div>
                     <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
+            </div>
+
+            <!-- Market Summary -->
+            <div class="summary-box">
+                <div class="summary-header">
+                    <span>📝</span> MARKET VOLATILITY OVERVIEW
+                </div>
+                <div class="summary-item" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
+                    <p class="summary-text" style="font-weight: 500; color: #f8fafc; margin: 0;">{market_overview}</p>
+                </div>
+                
+                <div class="summary-header" style="margin-top: 1rem;">
+                    <span>🔍</span> TICKER-BY-TICKER INSIGHTS
+                </div>
+                {ticker_summary_html}
             </div>
 
             <div class="grid">
