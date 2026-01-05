@@ -176,25 +176,6 @@ def fetch_news(ticker_symbol):
             
             if len(filtered_news) >= 3: break
         
-        # Fallback: If no major news found, try to include any news (excluding blocked)
-        if len(filtered_news) == 0:
-            for n in news_list:
-                content = n.get('content', n)
-                title = content.get('title')
-                provider = content.get('provider', {})
-                publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
-                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
-                link = link_obj.get('url', content.get('link'))
-                if not title or not link or title == "None": continue
-                if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS): continue
-                
-                filtered_news.append({
-                    "title": title.strip(),
-                    "publisher": publisher,
-                    "link": link
-                })
-                if len(filtered_news) >= 2: break
-        
         # NOTE: Fallback logic removed to ensure quality. 
         # If filtered_news < 3, we simply show fewer news.
 
@@ -591,6 +572,11 @@ def generate_html_report(results, filename="index.html"):
                 color: var(--text-dim);
                 font-weight: 400;
             }}
+            .news-empty {{
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                font-style: italic;
+            }}
 
             /* Modal */
             .modal {{
@@ -755,11 +741,18 @@ def generate_html_report(results, filename="index.html"):
                         <div class="news-list">
         """
         
-        for n in res['News']:
-            html_template += f"""
+        if res['News']:
+            for n in res['News']:
+                html_template += f"""
                             <div class="news-item">
                                 <a href="{n['link']}" target="_blank" class="news-link">{n['title']}</a>
                                 <span class="news-source">Source: {n['publisher']}</span>
+                            </div>
+            """
+        else:
+            html_template += """
+                            <div class="news-item">
+                                <p class="news-empty">There are no significant news affecting today's stock price.</p>
                             </div>
             """
             

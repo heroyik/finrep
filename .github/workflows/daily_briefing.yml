@@ -39,21 +39,18 @@ jobs:
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
         run: python main.py
 
-      - name: Debug public directory
-        run: ls -R public
+      - name: Debug and Deploy
+        run: |
+          ls -R public
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./public"
+          # Initialize or switch to gh-pages branch
+          cd public
+          git init
+          git checkout -b gh-pages
+          git add .
+          git commit -m "Deploy to GitHub Pages: ${GITHUB_SHA}"
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: run-briefing
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Force push to gh-pages branch
+          git push -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages
