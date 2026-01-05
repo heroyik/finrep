@@ -156,45 +156,25 @@ def fetch_news(ticker_symbol):
         seen_links = set()
 
         for n in news_list:
-            # Handle yfinance news structure (data is inside 'content' field)
             content = n.get('content', n) 
             title = content.get('title')
-            
-            # Check publisher
             provider = content.get('provider', {})
             publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
-            
-            # Check link (canonicalUrl or clickThroughUrl)
             link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
             link = link_obj.get('url', content.get('link'))
             
             if not title or not link or title == "None": continue
-            
-            # Cleaning title for better dedup matching
             clean_title = title.strip()
-            
-            # 1. Deduplication (Check Title and Link)
-            if clean_title in seen_titles or link in seen_links:
-                continue
-            
-            # 2. Block Excluded Publishers
-            if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS):
-                continue
+            if clean_title in seen_titles or link in seen_links: continue
+            if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS): continue
                 
-            # 3. Allow Only Major Publishers
             is_major = any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS)
-            
             if is_major:
-                filtered_news.append({
-                    "title": clean_title,
-                    "publisher": publisher,
-                    "link": link
-                })
+                filtered_news.append({"title": clean_title, "publisher": publisher, "link": link})
                 seen_titles.add(clean_title)
                 seen_links.add(link)
             
-            if len(filtered_news) >= 3:
-                break
+            if len(filtered_news) >= 3: break
         
         # Fallback: If no major news found, try to include any news (excluding blocked)
         if len(filtered_news) == 0:
