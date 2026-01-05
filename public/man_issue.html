@@ -240,6 +240,52 @@
                 font-style: italic;
             }
 
+            /* Market Summary */
+            .summary-box {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin-top: 15px;
+                margin-bottom: 25px;
+            }
+            .summary-header {
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-dim);
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }
+            .summary-item {
+                margin-bottom: 0.8rem;
+                font-size: 0.95rem;
+                line-height: 1.4;
+                display: flex;
+                align-items: flex-start;
+            }
+            .summary-symbol {
+                display: inline-block;
+                min-width: 60px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-right: 10px;
+            }
+            .summary-text {
+                color: var(--text-base);
+            }
+            @media (max-width: 600px) {
+                .summary-item {
+                    font-size: 0.9rem;
+                }
+                .summary-symbol {
+                    min-width: 50px;
+                }
+            }
+
             /* Modal */
             .modal {
                 display: none;
@@ -281,7 +327,7 @@
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p>Updated at: 2026-01-05 17:22:40 KST</p>
+                <p>Updated at: 2026-01-05 17:49:50 KST</p>
                 <p style="font-weight: 600;">Reference Market Date: 2026-01-05</p>
                 <div style="margin-top: 10px; font-size: 0.9rem;">
                     Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
@@ -307,6 +353,61 @@
                     <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI(14) > 70</div>
                     <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
+            </div>
+
+            <!-- Market Summary -->
+            <div class="summary-box">
+                <div class="summary-header">
+                    <span>📝</span> MARKET VOLATILITY OVERVIEW
+                </div>
+                <div class="summary-item" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
+                    <p class="summary-text" style="font-weight: 500; color: #f8fafc; margin: 0;">Market pulse: MSTR Leverages STRC to Amplify Bitcoin Exposure as Preferred Stock Hits $100</p>
+                </div>
+                
+                <div class="summary-header" style="margin-top: 1rem;">
+                    <span>🔍</span> TICKER-BY-TICKER INSIGHTS
+                </div>
+                
+                    <div class="summary-item">
+                        <span class="summary-symbol">BITU</span>
+                        <span class="summary-text">MSTR Leverages STRC to Amplify Bitcoin Exposure as Preferred Stock Hits $100</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">ORCX</span>
+                        <span class="summary-text">Why Investors Are Watching SailGP’s Explosive Audience Growth</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">PLTG</span>
+                        <span class="summary-text">5 tech stocks that could bring gains to your portfolio in the new year</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">CRWU</span>
+                        <span class="summary-text">The Stock Market Won’t Be Worth Celebrating in 2026</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">CCUP</span>
+                        <span class="summary-text">An 80% Wipeout Hasn’t Stopped Korean Retail From Chasing Tom Lee’s BitMine</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">OKLL</span>
+                        <span class="summary-text">OKLO – Among the Energy Stocks that Fell This Week</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">USD</span>
+                        <span class="summary-text">AI Stocks Are Doing the Heavy Lifting Today</span>
+                    </div>
+        
+                    <div class="summary-item">
+                        <span class="summary-symbol">GGLL</span>
+                        <span class="summary-text">The 'cash they have is excessive': Warren Buffett's exit puts spotlight on Berkshire Hathaway's next move</span>
+                    </div>
+        
             </div>
 
             <div class="grid">
