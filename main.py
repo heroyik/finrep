@@ -880,13 +880,9 @@ if __name__ == "__main__":
         print(f"Analyzing {ticker}...")
         report_data.append(fetch_and_analyze(ticker))
     
-    # Generate HTML report
-    if args.manual:
-        # Manual mode: generate both for testing/testing visibility
-        generate_html_report(report_data, "man_issue.html")
-        generate_html_report(report_data, "index.html")
-    else:
-        generate_html_report(report_data, "index.html")
+    # Generate HTML report (Always generate both for consistency and testing visibility)
+    generate_html_report(report_data, "index.html")
+    generate_html_report(report_data, "man_issue.html")
     
     # GitHub Pages URL
     GITHUB_USER = "heroyik"
