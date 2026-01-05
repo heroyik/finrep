@@ -39,7 +39,7 @@ UNDERLYING_MAP = {
 MAJOR_PUBLISHERS = [
     "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
     "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
-    "The New York Times", "NYT", "The Economist", "Barrons", "Yahoo Finance"
+    "The New York Times", "NYT", "The Economist", "Barrons", "Yahoo Finance", "BeInCrypto", "Nasdaq"
 ]
 
 # Explicitly excluded publishers (Subscription bait, etc.)
@@ -162,7 +162,7 @@ def fetch_news(ticker_symbol):
             
             # Check publisher
             provider = content.get('provider', {})
-            publisher = provider.get('name', content.get('publisher', 'Unknown'))
+            publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
             
             # Check link (canonicalUrl or clickThroughUrl)
             link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
@@ -252,6 +252,7 @@ def generate_chart(symbol, df, filename):
     
     # Save chart
     full_path = os.path.join("public/charts", filename)
+    print(f"Generating chart: {full_path}")
     
     # Set sufficient margins to center the chart body (box)
     fig, axes = mpf.plot(
@@ -291,6 +292,10 @@ def generate_chart(symbol, df, filename):
     
     plt.savefig(full_path, dpi=160)
     plt.close()
+    if os.path.exists(full_path):
+        print(f"Successfully saved chart to {full_path}")
+    else:
+        print(f"Failed to save chart to {full_path}")
 
 def get_access_token():
     """Refresh Token to issue new Access Token"""
