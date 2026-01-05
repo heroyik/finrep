@@ -39,7 +39,8 @@ UNDERLYING_MAP = {
 MAJOR_PUBLISHERS = [
     "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
     "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
-    "The New York Times", "NYT", "The Economist", "Barrons", "Yahoo Finance", "BeInCrypto", "Nasdaq"
+    "The New York Times", "NYT", "The Economist", "Barrons", "Yahoo Finance", "BeInCrypto", "Nasdaq", 
+    "Benzinga", "Zacks", "Investopedia", "Seeking Alpha", "Investor's Business Daily", "IBD", "Silicon Valley Business Journal"
 ]
 
 # Explicitly excluded publishers (Subscription bait, etc.)
@@ -176,8 +177,29 @@ def fetch_news(ticker_symbol):
             
             if len(filtered_news) >= 3: break
         
-        # NOTE: Fallback logic removed to ensure quality. 
-        # If filtered_news < 3, we simply show fewer news.
+        # Fallback: If no major news found, try to include any news (excluding blocked)
+        if len(filtered_news) < 2:
+            for n in news_list:
+                content = n.get('content', n)
+                title = content.get('title')
+                provider = content.get('provider', {})
+                publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
+                link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+                link = link_obj.get('url', content.get('link'))
+                if not title or not link or title == "None": continue
+                
+                clean_title = title.strip()
+                if clean_title in seen_titles or link in seen_links: continue
+                if any(exc.lower() in publisher.lower() for exc in EXCLUDED_PUBLISHERS): continue
+                
+                filtered_news.append({
+                    "title": clean_title,
+                    "publisher": publisher,
+                    "link": link
+                })
+                seen_titles.add(clean_title)
+                seen_links.add(link)
+                if len(filtered_news) >= 3: break
 
         return filtered_news, underlying
     except Exception as e:
@@ -330,11 +352,14 @@ def check_market_status():
 
 
 
-def generate_html_report(results, filename="index.html"):
+def generate_html_report(results, filename="index.html", market_date=""):
     # Set KST time (UTC+9)
     now_utc = datetime.now(timezone.utc)
     now_kst = now_utc + timedelta(hours=9)
     date_str = now_kst.strftime('%Y-%m-%d %H:%M:%S KST')
+    
+    # Market date line (English)
+    market_date_line = f"Reference Market Date: {market_date}" if market_date else ""
     
     html_template = f"""
     <!DOCTYPE html>
@@ -619,7 +644,11 @@ def generate_html_report(results, filename="index.html"):
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p class="date">Updated at: {date_str}</p>
+                <p>Updated at: {date_str}</p>
+                <p style="font-weight: 600;">{market_date_line}</p>
+                <div style="margin-top: 10px; font-size: 0.9rem;">
+                    Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
+                </div>
             </header>
             
             <!-- Signal Dashboard -->
@@ -873,8 +902,8 @@ if __name__ == "__main__":
         report_data.append(fetch_and_analyze(ticker))
     
     # Generate HTML report (Always generate both for consistency and testing visibility)
-    generate_html_report(report_data, "index.html")
-    generate_html_report(report_data, "man_issue.html")
+    generate_html_report(report_data, "index.html", market_date_str)
+    generate_html_report(report_data, "man_issue.html", market_date_str)
     
     # GitHub Pages URL
     GITHUB_USER = "heroyik"
