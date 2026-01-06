@@ -321,13 +321,45 @@
                     margin-top: 4px;
                 }
             }
+
+            /* Indices Grid */
+            .indices-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+            .index-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+            }
+            .index-name {
+                font-size: 0.9rem;
+                color: #38bdf8;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+            .index-price {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-main);
+                margin-bottom: 4px;
+            }
+            .index-change {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p>Updated at: 2026-01-06 16:06:58 KST</p>
+                <p>Updated at: 2026-01-06 16:19:33 KST</p>
                 <p style="font-weight: 600;">Reference Market Date: 2026-01-06</p>
                 <div style="margin-top: 10px; font-size: 0.9rem;">
                     Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
@@ -354,15 +386,34 @@
                     <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
             </div>
-
+    
             <!-- Market Summary -->
             <div class="summary-box">
-                <div class="summary-header">
-                    <span>📝</span> MARKET VOLATILITY OVERVIEW
-                </div>
-                <div class="summary-item" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
-                    <p class="summary-text" style="font-weight: 500; color: #f8fafc; margin: 0;">Market pulse: Novo releases GLP-1 pill, bitcoin price rises, Qualcomm's chips</p>
-                </div>
+                <div class="indices-grid">
+            <div class="index-card">
+                <span class="index-name">S&P 500</span>
+                <span class="index-price">6,902.05</span>
+                <span class="index-change up">+0.64%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Dow Jones</span>
+                <span class="index-price">48,977.18</span>
+                <span class="index-change up">+1.23%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Nasdaq</span>
+                <span class="index-price">23,395.82</span>
+                <span class="index-change up">+0.69%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Russell 2000</span>
+                <span class="index-price">2,547.92</span>
+                <span class="index-change up">+1.58%</span>
+            </div>
+        </div>
                 
                 <div class="summary-header" style="margin-top: 1rem;">
                     <span>🔍</span> TICKER-BY-TICKER INSIGHTS

@@ -252,6 +252,77 @@ def fetch_news(ticker_symbol):
         print(f"Error fetching news for {ticker_symbol}: {e}")
         return [], display_name
 
+def fetch_market_indices():
+    """
+    Fetch data for Major 4 Indices: S&P 500, Dow, Nasdaq, Russell 2000
+    Returns a list of dicts with Name, Price, Change, ChangePercent
+    """
+    indices = [
+        {"name": "S&P 500", "symbol": "^GSPC"},
+        {"name": "Dow Jones", "symbol": "^DJI"},
+        {"name": "Nasdaq", "symbol": "^IXIC"},
+        {"name": "Russell 2000", "symbol": "^RUT"}
+    ]
+    
+    results = []
+    print("Fetching major indices data...")
+    
+    for idx in indices:
+        try:
+            ticker = yf.Ticker(idx["symbol"])
+            price = None
+            change_pct = None
+            
+            # Try fast_info first
+            if hasattr(ticker, 'fast_info'):
+                try:
+                    price = ticker.fast_info['last_price']
+                    prev_close = ticker.fast_info['previous_close']
+                    change_pct = ((price - prev_close) / prev_close) * 100
+                except:
+                    pass
+            
+            # Fallback to history
+            if price is None:
+                hist = ticker.history(period="2d")
+                if not hist.empty:
+                    current = hist.iloc[-1]['Close']
+                    if len(hist) > 1:
+                        prev = hist.iloc[-2]['Close']
+                        price = current
+                        change_pct = ((current - prev) / prev) * 100
+                    else:
+                        price = current
+                        change_pct = 0.0
+            
+            if price is not None:
+                results.append({
+                    "name": idx["name"],
+                    "symbol": idx["symbol"],
+                    "price": price,
+                    "change_pct": change_pct
+                })
+            else:
+                results.append({
+                    "name": idx["name"],
+                    "symbol": idx["symbol"],
+                    "price": 0.0,
+                    "change_pct": 0.0,
+                    "error": True
+                })
+                
+        except Exception as e:
+            print(f"Error fetching index {idx['name']}: {e}")
+            results.append({
+                "name": idx["name"],
+                "symbol": idx["symbol"],
+                "price": 0.0,
+                "change_pct": 0.0,
+                "error": True
+            })
+            
+    return results
+
 def generate_chart(symbol, df, filename):
     # Use only recent 60 trading days (Chart Readability)
     plot_df = df.tail(60).copy()
@@ -771,6 +842,38 @@ def generate_html_report(results, filename="index.html", market_date=""):
                     margin-top: 4px;
                 }}
             }}
+
+            /* Indices Grid */
+            .indices-grid {{
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 24px;
+            }}
+            .index-card {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+            }}
+            .index-name {{
+                font-size: 0.9rem;
+                color: #38bdf8;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }}
+            .index-price {{
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-main);
+                margin-bottom: 4px;
+            }}
+            .index-change {{
+                font-size: 0.9rem;
+                font-weight: 600;
+            }}
         </style>
     </head>
     <body>
@@ -839,7 +942,7 @@ def generate_html_report(results, filename="index.html", market_date=""):
                     </div>
         """
 
-    html_template += f"""
+    html_template += """
                 </div>
                 <div class="strategy-legend">
                     <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120*) + Close < EMA(20)</div>
@@ -848,15 +951,31 @@ def generate_html_report(results, filename="index.html", market_date=""):
                     <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
             </div>
+    """
 
+    # Fetch Market Indices Data
+    indices_data = fetch_market_indices()
+    
+    indices_html = '<div class="indices-grid">'
+    for idx in indices_data:
+        c_class = "up" if idx['change_pct'] >= 0 else "down"
+        c_sign = "+" if idx['change_pct'] >= 0 else ""
+        formatted_price = f"{idx['price']:,.2f}"
+        formatted_change = f"{c_sign}{idx['change_pct']:.2f}%"
+        
+        indices_html += f"""
+            <div class="index-card">
+                <span class="index-name">{idx['name']}</span>
+                <span class="index-price">{formatted_price}</span>
+                <span class="index-change {c_class}">{formatted_change}</span>
+            </div>
+        """
+    indices_html += '</div>'
+
+    html_template += f"""
             <!-- Market Summary -->
             <div class="summary-box">
-                <div class="summary-header">
-                    <span>📝</span> MARKET VOLATILITY OVERVIEW
-                </div>
-                <div class="summary-item" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
-                    <p class="summary-text" style="font-weight: 500; color: #f8fafc; margin: 0;">{market_overview}</p>
-                </div>
+                {indices_html}
                 
                 <div class="summary-header" style="margin-top: 1rem;">
                     <span>🔍</span> TICKER-BY-TICKER INSIGHTS
