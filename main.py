@@ -323,6 +323,104 @@ def fetch_market_indices():
             
     return results
 
+def fetch_market_highlights():
+    """
+    Check 52-week highs for major indices.
+    Returns list of highlight strings.
+    """
+    indices = [
+        {"name": "S&P 500", "symbol": "^GSPC"},
+        {"name": "Dow Jones", "symbol": "^DJI"},
+        {"name": "Nasdaq", "symbol": "^IXIC"},
+        {"name": "Russell 2000", "symbol": "^RUT"}
+    ]
+    
+    highlights = []
+    print("Checking market highlights...")
+    
+    for idx in indices:
+        try:
+            t = yf.Ticker(idx["symbol"])
+            # Use info for 52-week high data
+            info = t.info
+            price = info.get('regularMarketPrice') or info.get('currentPrice')
+            year_high = info.get('fiftyTwoWeekHigh')
+            
+            if price and year_high:
+                # threshold: within 1% of 52-week high
+                if price >= year_high * 0.99:
+                    highlights.append(f"🚀 <strong>{idx['name']}</strong> is trading near its 52-week high, signaling strong momentum.")
+        except Exception as e:
+            print(f"Error checking highlight for {idx['name']}: {e}")
+            
+    return highlights
+
+def fetch_market_news():
+    """
+    Fetch and curate top market news from major indices.
+    Returns list of dicts {title, link, source}.
+    """
+    # Check all 4 indices for broad coverage
+    indices = ["^GSPC", "^DJI", "^IXIC", "^RUT"] 
+    all_news = []
+    
+    print("Fetching market driver news...")
+    for sym in indices:
+        try:
+            t = yf.Ticker(sym)
+            news = t.news
+            if news:
+                all_news.extend(news)
+        except Exception as e:
+            print(f"Error fetching news for {sym}: {e}")
+            
+    # Deduplicate by link and title
+    seen_links = set()
+    seen_titles = set()
+    unique_news = []
+    
+    # Sort by publish time descending
+    def get_pub_time(n):
+        content = n.get('content', n)
+        return content.get('providerPublishTime', 0)
+    
+    all_news.sort(key=get_pub_time, reverse=True)
+    
+    keywords = ["market", "stock", "dow", "s&p", "nasdaq", "rally", "plunge", "inflation", "fed", "rate", "earnings"]
+    
+    for n in all_news:
+        content = n.get('content', n)
+        title = content.get('title', '')
+        # Handle provider extraction safely
+        provider = content.get('provider', {})
+        publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
+        
+        link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
+        link = link_obj.get('url', content.get('link'))
+        
+        if not title or not link: continue
+        
+        # Deduplication
+        if link in seen_links or title in seen_titles:
+            continue
+            
+        # Filter for relevant content (optional, but good for "drivers")
+        # For now, we take top news but prioritize those with keywords if we implement scoring.
+        # Simple approach: take top 4 distinct items.
+        
+        unique_news.append({
+            "title": title,
+            "link": link,
+            "source": publisher
+        })
+        seen_links.add(link)
+        seen_titles.add(title)
+        
+        if len(unique_news) >= 4:
+            break
+            
+    return unique_news
+
 def generate_chart(symbol, df, filename):
     # Use only recent 60 trading days (Chart Readability)
     plot_df = df.tail(60).copy()
@@ -874,6 +972,39 @@ def generate_html_report(results, filename="index.html", market_date=""):
                 font-size: 0.9rem;
                 font-weight: 600;
             }}
+            
+            /* Market Commentary */
+            .commentary-section {{
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+            }}
+            .highlight-item {{
+                margin-bottom: 8px;
+                font-size: 0.95rem;
+                color: var(--accent-green);
+            }}
+            .driver-item {{
+                margin-bottom: 12px;
+                display: flex;
+                flex-direction: column;
+            }}
+            .driver-link {{
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 0.95rem;
+                font-weight: 500;
+                line-height: 1.4;
+            }}
+            .driver-link:hover {{
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }}
+            .driver-source {{
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                margin-top: 2px;
+            }}
         </style>
     </head>
     <body>
@@ -972,15 +1103,43 @@ def generate_html_report(results, filename="index.html", market_date=""):
         """
     indices_html += '</div>'
 
+    # Fetch Highlights & News
+    highlights = fetch_market_highlights()
+    market_news = fetch_market_news()
+    
+    commentary_html = '<div class="commentary-section">'
+    
+    # Highlights
+    if highlights:
+        commentary_html += '<div style="margin-bottom: 15px;">'
+        for h in highlights:
+            commentary_html += f'<div class="highlight-item">✅ {h}</div>'
+        commentary_html += '</div>'
+        
+    # News Drivers
+    if market_news:
+        commentary_html += '<div class="summary-header"><span>📰</span> KEY MARKET DRIVERS</div>'
+        for n in market_news:
+            commentary_html += f"""
+                <div class="driver-item">
+                    <a href="{n['link']}" target="_blank" class="driver-link">{n['title']}</a>
+                    <span class="driver-source">{n['source']}</span>
+                </div>
+            """
+    else:
+        commentary_html += '<div class="news-empty">No major headlines found.</div>'
+        
+    commentary_html += '</div>'
+
     html_template += f"""
             <!-- Market Summary -->
             <div class="summary-box">
                 {indices_html}
                 
                 <div class="summary-header" style="margin-top: 1rem;">
-                    <span>🔍</span> TICKER-BY-TICKER INSIGHTS
+                    <span>📝</span> MARKET COMMENTARY
                 </div>
-                {ticker_summary_html}
+                {commentary_html}
             </div>
 
             <div class="grid">

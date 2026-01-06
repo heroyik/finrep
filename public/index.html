@@ -353,13 +353,46 @@
                 font-size: 0.9rem;
                 font-weight: 600;
             }
+            
+            /* Market Commentary */
+            .commentary-section {
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+            }
+            .highlight-item {
+                margin-bottom: 8px;
+                font-size: 0.95rem;
+                color: var(--accent-green);
+            }
+            .driver-item {
+                margin-bottom: 12px;
+                display: flex;
+                flex-direction: column;
+            }
+            .driver-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 0.95rem;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+            .driver-link:hover {
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }
+            .driver-source {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                margin-top: 2px;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p>Updated at: 2026-01-06 16:19:33 KST</p>
+                <p>Updated at: 2026-01-06 16:34:57 KST</p>
                 <p style="font-weight: 600;">Reference Market Date: 2026-01-06</p>
                 <div style="margin-top: 10px; font-size: 0.9rem;">
                     Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
@@ -416,49 +449,29 @@
         </div>
                 
                 <div class="summary-header" style="margin-top: 1rem;">
-                    <span>🔍</span> TICKER-BY-TICKER INSIGHTS
+                    <span>📝</span> MARKET COMMENTARY
                 </div>
-                
-                    <div class="summary-item">
-                        <span class="summary-symbol">BITU</span>
-                        <span class="summary-text">Novo releases GLP-1 pill, bitcoin price rises, Qualcomm's chips</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">ORCX</span>
-                        <span class="summary-text">AI took investors on a date in 2025. In 2026, analysts say it's time to foot the bill.</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">PLTG</span>
-                        <span class="summary-text">5 tech stocks that could bring gains to your portfolio in the new year</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">CRWU</span>
-                        <span class="summary-text">TSMC Shares Jump Most Since April After Goldman Lifts Target</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">CCUP</span>
-                        <span class="summary-text">These two stocks could benefit amid the rise in prediction markets</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">OKLL</span>
-                        <span class="summary-text">NuScale Power (SMR) Climbs 15% as Govt Ignites Nuclear Push</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">USD</span>
-                        <span class="summary-text">Stock market today: Dow, S&P 500, Nasdaq futures climb after Dow's record-setting rally</span>
-                    </div>
-        
-                    <div class="summary-item">
-                        <span class="summary-symbol">GGLL</span>
-                        <span class="summary-text">Nvidia launches Vera Rubin, its next major AI platform, at CES 2026</span>
-                    </div>
-        
+                <div class="commentary-section"><div style="margin-bottom: 15px;"><div class="highlight-item">✅ 🚀 <strong>S&P 500</strong> is trading near its 52-week high, signaling strong momentum.</div><div class="highlight-item">✅ 🚀 <strong>Dow Jones</strong> is trading near its 52-week high, signaling strong momentum.</div></div><div class="summary-header"><span>📰</span> KEY MARKET DRIVERS</div>
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/news/live/stock-market-today-dow-sp-500-nasdaq-futures-climb-after-dows-record-setting-rally-235217240.html" target="_blank" class="driver-link">Stock market today: Dow, S&P 500, Nasdaq futures climb after Dow's record-setting rally</a>
+                    <span class="driver-source">Yahoo Finance</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/news/why-the-stock-market-is-shrugging-off-venezuelan-leader-nicolas-maduros-capture-205110221.html" target="_blank" class="driver-link">Why the stock market is 'shrugging off' Venezuelan leader Nicolás Maduro's capture</a>
+                    <span class="driver-source">Yahoo Finance</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/news/ai-took-investors-on-a-date-in-2025-in-2026-analysts-say-its-time-to-foot-the-bill-140012067.html" target="_blank" class="driver-link">AI took investors on a date in 2025. In 2026, analysts say it's time to foot the bill.</a>
+                    <span class="driver-source">Yahoo Finance</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-nvidia-nvda-jensen-huang-speech/?src=A00220&yptr=yahoo" target="_blank" class="driver-link">Dow Jones Futures: AMD, Apple, Palantir, Tesla Are Key Movers; Nvidia CEO Jensen Huang Announces New AI Chip</a>
+                    <span class="driver-source">Investor's Business Daily</span>
+                </div>
+            </div>
             </div>
 
             <div class="grid">
