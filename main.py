@@ -31,7 +31,7 @@ UNDERLYING_MAP = {
     "CRWU": "CRWV",
     "CCUP": "CRCL",
     "OKLL": "OKLO",
-    "USD": "SOXX",
+    "USD": ["NVDA", "AMD", "AVGO", "MU"],
     "GGLL": "GOOGL"
 }
 
@@ -151,14 +151,38 @@ def fetch_and_analyze(ticker_symbol):
         return f"❌ {ticker_symbol}: Error occurred - {str(e)}"
 
 def fetch_news(ticker_symbol):
-    underlying = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
+    underlying_data = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
+    
+    # Normalize to list
+    if isinstance(underlying_data, list):
+        search_tickers = underlying_data
+        display_name = f"Semiconductors ({', '.join(search_tickers)})" # or just generic
+    else:
+        search_tickers = [underlying_data]
+        display_name = underlying_data
+
     try:
-        t = yf.Ticker(underlying)
-        news_list = t.news
-        filtered_news = []
+        all_news = []
+        for sym in search_tickers:
+            t = yf.Ticker(sym)
+            news = t.news
+            if news:
+                all_news.extend(news)
         
-        if not news_list:
-            return [], underlying
+        if not all_news:
+            return [], display_name
+
+        # Sort by publish time (descending)
+        # yfinance news items usually have 'providerPublishTime'
+        # Handle cases where it might be missing or nested
+        def get_pub_time(n):
+            content = n.get('content', n)
+            return content.get('providerPublishTime', 0)
+            
+        all_news.sort(key=get_pub_time, reverse=True)
+        
+        news_list = all_news
+        filtered_news = []
 
         seen_titles = set()
         seen_links = set()
@@ -223,10 +247,10 @@ def fetch_news(ticker_symbol):
                 if len(filtered_news) >= 3:
                     break
                     
-        return filtered_news, underlying
+        return filtered_news, display_name
     except Exception as e:
-        print(f"Error fetching news for {underlying}: {e}")
-        return [], underlying
+        print(f"Error fetching news for {ticker_symbol}: {e}")
+        return [], display_name
 
 def generate_chart(symbol, df, filename):
     # Use only recent 60 trading days (Chart Readability)

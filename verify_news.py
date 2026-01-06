@@ -149,12 +149,60 @@ class TestFetchNews(unittest.TestCase):
         titles = [r['title'] for r in results]
         self.assertEqual(titles.count("Major News 1 (CNN)"), 1, "Duplicate titles should be removed")
         
-        # 3. Check Major Only
+        # 3. Check Major Only (Valid Publishers)
         for p in publishers:
-             self.assertTrue(any(m.lower() in p.lower() for m in main.MAJOR_PUBLISHERS), f"Publisher {p} not in major list")
+             is_major = any(m.lower() in p.lower() for m in main.MAJOR_PUBLISHERS)
+             is_preferred = any(m.lower() in p.lower() for m in main.PREFERRED_PUBLISHERS)
+             self.assertTrue(is_major or is_preferred, f"Publisher {p} not in major or preferred list")
 
         # 4. Check Max Count (should be 3)
         self.assertTrue(len(results) <= 3, "Should return max 3 results")
+
+    @patch('main.yf.Ticker')
+    def test_fetch_news_multi_asset(self, mock_ticker_cls):
+        # Setup mock for multiple tickers
+        # We need side_effect to return different mock instances based on ticker symbol
+        
+        mock_nvda = MagicMock()
+        mock_nvda.news = [{
+            "uuid": "101",
+            "title": "NVDA News (New)",
+            "publisher": "CNBC",
+            "link": "https://cnbc.com/nvda",
+            "providerPublishTime": 1700000020, # Latest
+            "type": "STORY"
+        }]
+        
+        mock_amd = MagicMock()
+        mock_amd.news = [{
+            "uuid": "102",
+            "title": "AMD News (Old)",
+            "publisher": "Reuters",
+            "link": "https://reuters.com/amd",
+            "providerPublishTime": 1700000010, # Older
+            "type": "STORY"
+        }]
+
+        def side_effect(ticker_symbol):
+            if ticker_symbol == "NVDA": return mock_nvda
+            if ticker_symbol == "AMD": return mock_amd
+            return MagicMock()
+
+        mock_ticker_cls.side_effect = side_effect
+        
+        # Manually modify UNDERLYING_MAP for test isolation if needed, 
+        # but we can just use "USD" if it's already updated in main.py, or mock it.
+        # Let's mock UNDERLYING_MAP to ensure test stability regardless of config.
+        with patch.dict('main.UNDERLYING_MAP', {"TEST_MULTI": ["NVDA", "AMD"]}):
+            results, asset_name = main.fetch_news("TEST_MULTI")
+            
+            print("\nTested Multi-Asset Fetching:")
+            for r in results:
+                print(f"- {r['title']}")
+
+            self.assertEqual(len(results), 2)
+            self.assertEqual(results[0]['title'], "NVDA News (New)", "Should be sorted by latest first")
+            self.assertEqual(results[1]['title'], "AMD News (Old)")
 
 if __name__ == '__main__':
     unittest.main()
