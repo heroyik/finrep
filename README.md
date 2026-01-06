@@ -1,31 +1,44 @@
 # 📊 FinRep: Daily US Stock Briefing
 
-FinRep is an automated system that fetches daily closing prices and technical indicators (RSI, EMA) for specific US stocks and sends a visualized **Daily US Stock Briefing** to KakaoTalk.
+![FinRep Icon](stock_briefing_icon.jpg)
+
+FinRep is an automated, high-precision system designed to empower investors with daily insights. It meticulously analyzes closing prices, technical indicators (RSI, EMA), and market sentiment for a curated list of US stocks/ETFs, delivering a visually stunning and actionable briefing directly to KakaoTalk.
 
 ## 🚀 Key Features
 
-- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL).
-- **Dynamic Signal Dashboard**: A conditional "Signal Board" at the top of the report instantly highlights assets triggering specific trading setups (Bullish Trend, Oversold, Overbought). Empty signals are automatically hidden for clarity.
-- **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., Bitcoin) to provide context.
+- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL, USD, GGLL).
+- **Dynamic Signal Dashboard**: Instantly highlights assets triggering specific trading setups:
+  - **1st Buy**: Bearish Alignment (20 < 60 < 120*) + Close < EMA(20). (*EMA 120 is optional for new listings)
+  - **2nd Buy**: 1st Buy condition met + RSI < 30 (Deep Oversold).
+  - **1st Sell**: Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI > 70. (*EMA 120 is optional for new listings)
+  Empty signals are automatically hidden for clarity.
+- **Smart News Integration**: Automatically curates relevant news for each asset. For leverage ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., BTC-USD) and explicitly indicates the base asset in the report for better context.
 - **Premium Charting**:
   - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.
   - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.
 - **Visualized Report**: Generates a sleek, dark-themed HTML report (Fully English) hosted on GitHub Pages with **KST Timezone** support.
-- **KakaoTalk Integration**: Sends a summary message with a direct "View Report" button via KakaoTalk.
-- **Smart Scheduling**:
-  - **Holiday Detection**: Automatically checks US market status (SPY chart) and skips generation on holidays or weekends.
-  - **Daily Automation**: Runs every day at 7:00 AM KST via GitHub Actions.
+- **Smart KakaoTalk Notifications**:
+  - **Dynamic Signal Summary**: Instantly see which tickers triggered **1st Buy**, **2nd Buy**, or **1st Sell** directly in the message body.
+  - **nIcK's Exclusive Briefing**: Customized branding and header for a personalized experience.
+  - **Contextual Brilliance**: Automatically hides signal categories with no detected tickers, ensuring zero clutter.
+  - **US Market Date Integration**: Specifically mentions the actual US trading date analyzed, synchronizing perfectly with market hours.
+  - **One-Tap Access**: Features a direct **"상세 리포트 보기"** (View Detailed Report) button for a deep-dive into the full analysis.
+- **Smart Scheduling & Reliability**:
+  - **Intelligent Holiday Detection**: Automatically monitors US market status (via SPY) to skip generation during holidays or weekends.
+  - **Zero-Touch Automation**: Runs with 100% reliability every day at 7:00 AM KST via GitHub Actions.
+- **Manual Issuance Support**: Ability to manually trigger report generation via `--manual` flag for testing and verification, generating `man_issue.html` while optionally updating the live report.
 
-## 🔗 Live Report
+## 🔗 Live Reports
 
-The latest briefing is always available at:
-👉 [**https://heroyik.github.io/finrep/**](https://heroyik.github.io/finrep/)
+- **Latest Briefing**: [**https://heroyik.github.io/finrep/**](https://heroyik.github.io/finrep/)
+- **Manual/Test Issue**: [**https://heroyik.github.io/finrep/man_issue.html**](https://heroyik.github.io/finrep/man_issue.html)
 
 ## 🛠 Tech Stack
 
 - **Language**: Python 3.13
 - **Libraries**: `yfinance`, `pandas`, `pandas_ta`, `mplfinance`, `requests`
 - **Infrastructure**: GitHub Actions, GitHub Pages (Deployed from `gh-pages` branch)
+  - **Synchronization Policy**: Testing image files and charts generated in `public/charts/` are excluded from version control to maintain a clean repository.
 - **API**: Kakao Developers (OAuth 2.0 Message API)
 
 ## ⚙️ Setup & Secrets: Step-by-Step

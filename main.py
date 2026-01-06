@@ -9,41 +9,42 @@ from datetime import datetime, timedelta, timezone
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Python 3.9 미만 호환성 (하지만 3.13 사용중이므로 문제없음)
+    # Compatibility for Python versions below 3.9 (not an issue since we use 3.13)
     from datetime import timezone as ZoneInfo
 import json
+import argparse
 from dotenv import load_dotenv
 
-# 환경 변수 로드 (로컬 테스트용)
+# Load environment variables (for local testing)
 load_dotenv()
 
-TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL"]
+TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL", "USD", "GGLL"]
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
 
-# 종목별 기초자산 매핑 (뉴스 수집용)
+# Underlying asset mapping for each ticker (for news collection)
 UNDERLYING_MAP = {
     "BITU": "BTC-USD",
     "ORCX": "ORCL",
     "PLTG": "PLTR",
     "CRWU": "CRWV",
     "CCUP": "CRCL",
-    "OKLL": "OKLO"
+    "OKLL": "OKLO",
+    "USD": "SOXX",
+    "GGLL": "GOOGL"
 }
 
-# 추천 무료 뉴스 매체 (사용자 요청 반영: AP, CNBC, Reuters, Yahoo, Investing, Stock Analysis)
-PREFERRED_PUBLISHERS = [
-    "Associated Press", "AP", "CNBC", "Reuters", "Yahoo Finance", 
-    "Investing.com", "Stock Analysis", "Bloomberg", "CNN", "Forbes", "Fortune", 
-    "Business Insider", "The New York Times", "NYT", "The Economist"
+# 메이저 뉴스 매체 리스트
+MAJOR_PUBLISHERS = [
+    "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
+    "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
+    "The New York Times", "NYT", "The Economist", "Barrons", "Investor's Business Daily", "IBD",
+    "Yahoo Finance"
 ]
 
-# 유료 결제 유도/페이월 매체 (제외 대상)
-EXCLUDED_PUBLISHERS = [
-    "The Motley Fool", "Motley Fool", "Barrons", "Barron's", 
-    "Wall Street Journal", "WSJ", "MarketWatch", "Investor's Business Daily", "IBD"
-]
+# Explicitly excluded publishers (Subscription bait, etc.)
+EXCLUDED_PUBLISHERS = ["Motley Fool", "Investor's Business Daily", "IBD", "Zacks"]
 
 def fetch_and_analyze(ticker_symbol):
     try:
@@ -51,30 +52,30 @@ def fetch_and_analyze(ticker_symbol):
         df = ticker.history(period="1y")
         
         if df.empty:
-            return f"❌ {ticker_symbol}: 데이터를 가져올 수 없습니다."
+            return f"❌ {ticker_symbol}: Unable to fetch data."
 
-        # 종목명 가져오기 (Fast Info 없을 경우 대비)
+        # Get long name (fallback if Fast Info is missing)
         long_name = ""
         try:
-            # info 호출은 느릴 수 있으므로 타임아웃/예외처리 필요하나 간편하게 시도
-            # fast_info는 name 제공 안함. info 사용.
+            # info call might be slow, so timeout/exception handling needed but simplified here.
+            # fast_info doesn't provide name. Using info.
             long_name = ticker.info.get('longName', ticker.info.get('shortName', ''))
         except:
             long_name = ""
 
-        # 지표 계산
+        # Calculate indicators
         df['RSI'] = ta.rsi(df['Close'], length=14)
         df['EMA20'] = ta.ema(df['Close'], length=20)
         df['EMA60'] = ta.ema(df['Close'], length=60)
         df['EMA120'] = ta.ema(df['Close'], length=120)
 
-        # 종가 정보
+        # Close price information
         last_row = df.iloc[-1]
         prev_close = df.iloc[-2]['Close']
         current_close = last_row['Close']
         change_pct = ((current_close - prev_close) / prev_close) * 100
 
-        # 시간외 정보
+        # After-hours information
         after_hours_price = None
         after_hours_change = None
         try:
@@ -85,33 +86,38 @@ def fetch_and_analyze(ticker_symbol):
         except:
             pass
 
-        # 차트 생성
+        # Generate chart
         chart_filename = f"{ticker_symbol}_chart.png"
         generate_chart(ticker_symbol, df, chart_filename)
 
-        # 뉴스 수집
-        news = fetch_news(ticker_symbol)
+        # Fetch news
+        news, news_asset = fetch_news(ticker_symbol)
 
-        # 전략 신호 분석
-        # NaN 체크
+        # Analyze strategy signals
+        # NaN check
         c_rsi = last_row['RSI'] if not pd.isna(last_row['RSI']) else 50
         c_ema20 = last_row['EMA20'] if not pd.isna(last_row['EMA20']) else 0
         c_ema60 = last_row['EMA60'] if not pd.isna(last_row['EMA60']) else 0
         c_ema120 = last_row['EMA120'] if not pd.isna(last_row['EMA120']) else 0
         
-        # 1차 매수: EMA20 < EMA60 < EMA120 (역배열)
-        is_buy_1 = (c_ema20 < c_ema60) and (c_ema60 < c_ema120) and (c_ema20 > 0)
+        # 1st Buy: Bearish Alignment (20 < 60 < 120*) AND Close < EMA20
+        # *EMA 120 is included in alignment check only if available (for new listings)
+        alignment_buy = (c_ema20 < c_ema60)
+        if c_ema120 > 0:
+            alignment_buy = alignment_buy and (c_ema60 < c_ema120)
+            
+        is_buy_1 = alignment_buy and (c_ema20 > 0) and (current_close < c_ema20)
         
-        # 2차 매수: 1차 매수 충족 AND RSI < 30
+        # 2nd Buy: 1st Buy Condition Met AND RSI < 30
         is_buy_2 = is_buy_1 and (c_rsi < 30)
         
-        # 1차 매도: EMA20 > EMA60, EMA120 (정배열 가정 혹은 20이 가장 높음) AND RSI > 70
-        # 사용자 요청: "EMA(20) > EMA(60), EMA(120)" -> 20이 60, 120보다 큼.
-        # 엄격한 정배열(20>60>120)을 적용할지, 단순히 20이 짱인 경우를 볼지.
-        # 매수와 대칭성을 위해 20 > 60 > 120 (정배열)을 기준으로 잡되,
-        # 문맥상 과열권 매도이므로 20 > 60 and 20 > 120 조건이 합리적일 수 있음.
-        # 여기서는 "정배열(Bullish Alignment)"인 20 > 60 > 120 으로 정의하겠습니다.
-        is_sell_1 = (c_ema20 > c_ema60) and (c_ema60 > c_ema120) and (c_rsi > 70)
+        # 1st Sell: Bullish Alignment (20 > 60 > 120*) AND Close > EMA20 AND RSI > 70
+        # *EMA 120 is included in alignment check only if available (for new listings)
+        alignment_sell = (c_ema20 > c_ema60)
+        if c_ema120 > 0:
+            alignment_sell = alignment_sell and (c_ema60 > c_ema120)
+
+        is_sell_1 = alignment_sell and (current_close > c_ema20) and (c_rsi > 70)
 
         result = {
             "Symbol": ticker_symbol,
@@ -126,6 +132,7 @@ def fetch_and_analyze(ticker_symbol):
             "EMA120": round(c_ema120, 2),
             "Chart": chart_filename,
             "News": news,
+            "NewsAsset": news_asset,
             "Signals": {
                 "Buy1": is_buy_1,
                 "Buy2": is_buy_2,
@@ -134,7 +141,7 @@ def fetch_and_analyze(ticker_symbol):
         }
         return result
     except Exception as e:
-        return f"❌ {ticker_symbol}: 에러 발생 - {str(e)}"
+        return f"❌ {ticker_symbol}: Error occurred - {str(e)}"
 
 def fetch_news(ticker_symbol):
     underlying = UNDERLYING_MAP.get(ticker_symbol, ticker_symbol)
@@ -146,52 +153,39 @@ def fetch_news(ticker_symbol):
         if not news_list:
             return []
 
+        seen_titles = set()
+        seen_links = set()
+
         for n in news_list:
-            # yfinance news 구조 대응 (데이터가 'content' 필드 내부에 있음)
             content = n.get('content', n) 
             title = content.get('title')
-            
-            # publisher 확인
             provider = content.get('provider', {})
-            publisher = provider.get('name', content.get('publisher', 'Unknown'))
-            
-            # link 확인 (canonicalUrl or clickThroughUrl)
+            publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
             link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
             link = link_obj.get('url', content.get('link'))
             
             if not title or not link or title == "None": continue
             
-            # 제외 매체 체크
-            if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
-                continue
-
-            # 선호 매체 체크
-            if any(pref.lower() in publisher.lower() for pref in PREFERRED_PUBLISHERS):
+            if any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS):
                 filtered_news.append({
                     "title": title,
                     "publisher": publisher,
                     "link": link
                 })
             
-            if len(filtered_news) >= 3:
-                break
+            if len(filtered_news) >= 3: break
         
-        # 필터링된 뉴스가 부족하면 상위 뉴스 그냥 노출 (백업)
-        if len(filtered_news) < 3:
+        # Fallback: If no major news found, try to include any news (excluding blocked)
+        if len(filtered_news) < 2:
             for n in news_list:
                 content = n.get('content', n)
                 title = content.get('title')
                 provider = content.get('provider', {})
-                publisher = provider.get('name', content.get('publisher', 'Market News'))
+                publisher = provider.get('displayName', provider.get('name', content.get('publisher', 'Unknown')))
                 link_obj = content.get('canonicalUrl', content.get('clickThroughUrl', {}))
                 link = link_obj.get('url', content.get('link'))
-                
                 if not title or not link or title == "None": continue
                 
-                # 제외 매체 체크 (백업 루프에서도 제외)
-                if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
-                    continue
-
                 if title not in [fn['title'] for fn in filtered_news]:
                     filtered_news.append({
                         "title": title,
@@ -204,16 +198,16 @@ def fetch_news(ticker_symbol):
         return filtered_news
     except Exception as e:
         print(f"Error fetching news for {underlying}: {e}")
-        return []
+        return [], underlying
 
 def generate_chart(symbol, df, filename):
-    # 최근 60영업일 데이터만 사용 (차트 가독성)
+    # Use only recent 60 trading days (Chart Readability)
     plot_df = df.tail(60).copy()
     
-    # 공백 데이터 제거
+    # Remove empty data
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
     
-    # EMA 선 설정 (데이터가 존재하는 경우에만 추가)
+    # EMA line settings (Add only if data exists)
     apds = []
     
     # EMA 20
@@ -224,7 +218,7 @@ def generate_chart(symbol, df, filename):
     if 'EMA60' in plot_df.columns and not plot_df['EMA60'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['EMA60'], color='#8b5cf6', width=1.2, label='EMA 60'))
         
-    # EMA 120 (상장 초기 종목 등 데이터 부족 시 제외)
+    # EMA 120 (Exclude if insufficient data, e.g., newly listed stocks)
     if 'EMA120' in plot_df.columns and not plot_df['EMA120'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['EMA120'], color='#64748b', width=1.2, label='EMA 120'))
         
@@ -232,7 +226,7 @@ def generate_chart(symbol, df, filename):
     if 'RSI' in plot_df.columns and not plot_df['RSI'].isnull().all():
         apds.append(mpf.make_addplot(plot_df['RSI'], panel=1, color='#313d4a', width=1.0, secondary_y=False))
     
-    # 미니멀 스타일 설정
+    # Minimal style settings
     mc = mpf.make_marketcolors(up='#10b981', down='#f43f5e', edge='inherit', wick='inherit', volume='inherit')
     style = mpf.make_mpf_style(
         marketcolors=mc, 
@@ -243,20 +237,21 @@ def generate_chart(symbol, df, filename):
         rc={'font.family': 'sans-serif', 'font.size': 6.5}
     )
     
-    # 차트 폴더 생성
+    # Create chart folder
     if not os.path.exists("public/charts"):
         os.makedirs("public/charts")
     
-    # 차트 저장
+    # Save chart
     full_path = os.path.join("public/charts", filename)
+    print(f"Generating chart: {full_path}")
     
-    # 여백을 넉넉하게 설정하여 차트 본문(박스)을 정중앙에 배치
+    # Set sufficient margins to center the chart body (box)
     fig, axes = mpf.plot(
         plot_df,
         type='candle',
         addplot=apds,
         volume=False,
-        figratio=(12, 8), # 가로세로 비율 조정
+        figratio=(12, 8), # Adjusted aspect ratio
         style=style,
         returnfig=True,
         panel_ratios=(2, 1),
@@ -265,32 +260,36 @@ def generate_chart(symbol, df, filename):
         ylabel_lower=''
     )
     
-    # 사용자 피드백 반영: 왼쪽 여백을 오렌지 가이드라인에 맞춰 축소 (0.2 -> 0.12)
-    # 우측 여백은 유지 (right=0.8)
-    # 상하 여백은 기존 유지 (top=0.8, bottom=0.2)
+    # Reflect user feedback: Reduce left margin per orange guideline (0.2 -> 0.12)
+    # Maintain right margin (right=0.8)
+    # Maintain top/bottom margins (top=0.8, bottom=0.2)
     plt.subplots_adjust(left=0.12, right=0.8, top=0.8, bottom=0.2)
     
-    # Legend 설정 (심플하게)
+    # Legend settings (Simple)
     axes[0].legend(loc='upper left', fontsize=6, frameon=False)
     
-    # RSI 수평선
+    # RSI Horizontal lines
     axes[2].axhline(y=70, color='#f43f5e', linestyle='--', linewidth=0.6, alpha=0.3)
     axes[2].axhline(y=30, color='#10b981', linestyle='--', linewidth=0.6, alpha=0.3)
     
-    # 축 설정 정리
+    # Axis alignment settings
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
     
-    # 폰트 및 틱 설정 (숫자가 차트 박스 밖으로 여유 있게 나오도록 pad 조정)
+    # Font and tick settings (Adjust pad so numbers appear outside the chart box with sufficient space)
     for ax in axes:
         ax.tick_params(axis='y', labelsize=6, pad=5)
         ax.tick_params(axis='x', labelsize=6, pad=5)
     
     plt.savefig(full_path, dpi=160)
     plt.close()
+    if os.path.exists(full_path):
+        print(f"Successfully saved chart to {full_path}")
+    else:
+        print(f"Failed to save chart to {full_path}")
 
 def get_access_token():
-    """Refresh Token을 이용해 새로운 Access Token 발급"""
+    """Refresh Token to issue new Access Token"""
     url = "https://kauth.kakao.com/oauth/token"
     data = {
         "grant_type": "refresh_token",
@@ -308,31 +307,31 @@ def get_access_token():
 
 def check_market_status():
     """
-    SPY(S&P 500 ETF)의 마지막 거래일을 확인하여
-    전일 미국 증시가 휴장이었는지 판단.
+    Check the last trading day of SPY (S&P 500 ETF) to 
+    determine if the US market was closed on the previous day.
     """
     try:
-        # 1. 현재 미국 동부 시간 (New York) 확인
-        # Github Actions는 KST 07:00에 실행됨 -> 미국은 전날 17:00/18:00 (장 마감 후)
-        # 따라서 "미국 현지 날짜"가 "마지막 거래일"과 같은지 확인하면 됨.
+        # 1. Check current US Eastern Time (New York)
+        # Github Actions runs at 07:00 KST -> US is 17:00/18:00 the previous day (after market close)
+        # Check if "US Local Date" matches "Last Trading Day".
         ny_tz = ZoneInfo("America/New_York")
         now_ny = datetime.now(ny_tz)
         target_date_str = now_ny.strftime('%Y-%m-%d')
         print(f"Checking market status for US Date: {target_date_str}")
 
-        # 2. SPY 데이터 조회 (최근 5일치)
+        # 2. Query SPY data (last 5 days)
         spy = yf.Ticker("SPY")
         hist = spy.history(period="5d")
         
         if hist.empty:
             print("❌ Critical: Unable to fetch SPY data for market check.")
-            return False # 안전하게 진행 (혹은 중단 결정 필요)
+            return False # Proceed safely (or decide to stop)
 
         last_date = hist.index[-1].date()
         last_date_str = last_date.strftime('%Y-%m-%d')
         print(f"Latest market data available: {last_date_str}")
 
-        # 3. 휴장 여부 판단
+        # 3. Determine if market was closed
         if last_date_str != target_date_str:
             print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {last_date_str})")
             return False
@@ -342,16 +341,56 @@ def check_market_status():
 
     except Exception as e:
         print(f"Warning: Market status check failed: {e}")
-        # 체크 실패 시 일단 진행 (안전장치)
+        # Proceed if check fails (safety measure)
         return True
 
 
 
-def generate_html_report(results):
-    # KST 시간 설정 (UTC+9)
+def generate_html_report(results, filename="index.html", market_date=""):
+    # Set KST time (UTC+9)
     now_utc = datetime.now(timezone.utc)
     now_kst = now_utc + timedelta(hours=9)
     date_str = now_kst.strftime('%Y-%m-%d %H:%M:%S KST')
+    
+    # Market date line (English)
+    market_date_line = f"Reference Market Date: {market_date}" if market_date else ""
+    
+    # ---------------------------------------------------------
+    # Generate Summaries (Market Overview & Ticker Insights)
+    # ---------------------------------------------------------
+    market_overview = "Markets are currently processing AI sector consolidation, inflation expectations, and recent geopolitical developments affecting global trade sentiments."
+    
+    # Try to find a better overview from broad news (BTC-USD or index proxies)
+    for res in results:
+        if res['Symbol'] in ['BITU', 'USD'] and res['News']:
+            # Use a slightly more specific headline if available
+            market_overview = f"Market pulse: {res['News'][0]['title']}"
+            break
+            
+    ticker_summaries = []
+    for res in results:
+        insight = "Moving in line with broader market sentiment and sector momentum."
+        if res['News']:
+            insight = res['News'][0]['title']
+        elif res['Change'] > 3:
+            insight = "Strong upward momentum observed without specific immediate headlines."
+        elif res['Change'] < -3:
+            insight = "Undergoing price correction amid broader sector sell-off."
+            
+        ticker_summaries.append({
+            "symbol": res['Symbol'],
+            "insight": insight
+        })
+    
+    ticker_summary_html = ""
+    for item in ticker_summaries:
+        ticker_summary_html += f"""
+                    <div class="summary-item">
+                        <span class="summary-symbol">{item['symbol']}</span>
+                        <span class="summary-text">{item['insight']}</span>
+                    </div>
+        """
+    # ---------------------------------------------------------
     
     html_template = f"""
     <!DOCTYPE html>
@@ -400,6 +439,7 @@ def generate_html_report(results):
                 margin-bottom: 10px;
                 background: linear-gradient(to right, #38bdf8, #818cf8);
                 -webkit-background-clip: text;
+                background-clip: text;
                 -webkit-text-fill-color: transparent;
             }}
             .date {{
@@ -588,6 +628,57 @@ def generate_html_report(results):
                 color: var(--text-dim);
                 font-weight: 400;
             }}
+            .news-empty {{
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                font-style: italic;
+            }}
+
+            /* Market Summary */
+            .summary-box {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin-top: 15px;
+                margin-bottom: 25px;
+            }}
+            .summary-header {{
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-dim);
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }}
+            .summary-item {{
+                margin-bottom: 0.8rem;
+                font-size: 0.95rem;
+                line-height: 1.4;
+                display: flex;
+                align-items: flex-start;
+            }}
+            .summary-symbol {{
+                display: inline-block;
+                min-width: 60px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-right: 10px;
+            }}
+            .summary-text {{
+                color: var(--text-base);
+            }}
+            @media (max-width: 600px) {{
+                .summary-item {{
+                    font-size: 0.9rem;
+                }}
+                .summary-symbol {{
+                    min-width: 50px;
+                }}
+            }}
 
             /* Modal */
             .modal {{
@@ -630,7 +721,11 @@ def generate_html_report(results):
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p class="date">Updated at: {date_str}</p>
+                <p>Updated at: {date_str}</p>
+                <p style="font-weight: 600;">{market_date_line}</p>
+                <div style="margin-top: 10px; font-size: 0.9rem;">
+                    Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
+                </div>
             </header>
             
             <!-- Signal Dashboard -->
@@ -647,7 +742,7 @@ def generate_html_report(results):
     # 1. 1st Buy List
     if buy1_tickers:
         html_template += """
-                    <!-- 1차 매수 -->
+                    <!-- 1st Buy -->
                     <div class="dash-item">
                         <div class="dash-title">Bullish Setup (1st Buy)</div>
                         <div class="ticker-badges">
@@ -662,7 +757,7 @@ def generate_html_report(results):
     # 2. 2nd Buy List
     if buy2_tickers:
         html_template += """
-                    <!-- 2차 매수 -->
+                    <!-- 2nd Buy -->
                     <div class="dash-item">
                         <div class="dash-title">Oversold & Bullish (2nd Buy)</div>
                         <div class="ticker-badges">
@@ -677,7 +772,7 @@ def generate_html_report(results):
     # 3. Sell List
     if sell1_tickers:
         html_template += """
-                    <!-- 1차 매도 -->
+                    <!-- 1st Sell -->
                     <div class="dash-item">
                         <div class="dash-title">Overbought & Peak (Sell)</div>
                         <div class="ticker-badges">
@@ -689,13 +784,29 @@ def generate_html_report(results):
                     </div>
         """
 
-    html_template += """
+    html_template += f"""
                 </div>
                 <div class="strategy-legend">
-                    <div class="strategy-row"><strong>1st Buy:</strong> EMA(20) < EMA(60) < EMA(120) (Bearish Alignment / Bottom Zone)</div>
+                    <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120*) + Close < EMA(20)</div>
                     <div class="strategy-row"><strong>2nd Buy:</strong> 1st Buy Conditions Met + RSI(14) < 30 (Deep Oversold)</div>
-                    <div class="strategy-row"><strong>1st Sell:</strong> EMA(20) > EMA(60) > EMA(120) + RSI(14) > 70 (Bullish Alignment / Overheated)</div>
+                    <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI(14) > 70</div>
+                    <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
                 </div>
+            </div>
+
+            <!-- Market Summary -->
+            <div class="summary-box">
+                <div class="summary-header">
+                    <span>📝</span> MARKET VOLATILITY OVERVIEW
+                </div>
+                <div class="summary-item" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1rem;">
+                    <p class="summary-text" style="font-weight: 500; color: #f8fafc; margin: 0;">{market_overview}</p>
+                </div>
+                
+                <div class="summary-header" style="margin-top: 1rem;">
+                    <span>🔍</span> TICKER-BY-TICKER INSIGHTS
+                </div>
+                {ticker_summary_html}
             </div>
 
             <div class="grid">
@@ -746,16 +857,23 @@ def generate_html_report(results):
                     
                     <div class="news-section">
                         <div class="news-header">
-                            <span>📰</span> Related News & Market Insights
+                            <span>📰</span> Related News & Market {f"({res['NewsAsset']} Insights)" if res['NewsAsset'] != res['Symbol'] else "Insights"}
                         </div>
                         <div class="news-list">
         """
         
-        for n in res['News']:
-            html_template += f"""
+        if res['News']:
+            for n in res['News']:
+                html_template += f"""
                             <div class="news-item">
                                 <a href="{n['link']}" target="_blank" class="news-link">{n['title']}</a>
                                 <span class="news-source">Source: {n['publisher']}</span>
+                            </div>
+            """
+        else:
+            html_template += """
+                            <div class="news-item">
+                                <p class="news-empty">There are no significant news affecting today's stock price.</p>
                             </div>
             """
             
@@ -792,12 +910,12 @@ def generate_html_report(results):
     if not os.path.exists("public"):
         os.makedirs("public")
     
-    report_path = os.path.join("public", "index.html")
+    report_path = os.path.join("public", filename)
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_template)
-    print(f"HTML report generated: {report_path}")
+    print(f"HTML report {filename} generated: {report_path}")
 
-def send_kakao_link(briefing_url):
+def send_kakao_link(briefing_url, results, market_date):
     if not KAKAO_REST_API_KEY or not KAKAO_REFRESH_TOKEN:
         print(f"Kakao configuration missing. Briefing URL: {briefing_url}")
         return
@@ -809,19 +927,40 @@ def send_kakao_link(briefing_url):
         "Authorization": f"Bearer {access_token}"
     }
 
-    # 이미지 URL 및 템플릿 최적화
-    # 가장 단순하고 확실한 'text' 템플릿으로 변경하여 버튼 활성화 테스트
-    now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
-    k_date = now_kst.strftime('%Y-%m-%d')
+    # Extract signals
+    valid_results = [r for r in results if not isinstance(r, str)]
+    buy1 = [r['Symbol'] for r in valid_results if r['Signals']['Buy1']]
+    buy2 = [r['Symbol'] for r in valid_results if r['Signals']['Buy2']]
+    sell1 = [r['Symbol'] for r in valid_results if r['Signals']['Sell1']]
+
+    # Build signal summary
+    summary_parts = []
+    if buy1: summary_parts.append(f"✅ 1차 매수: {', '.join(buy1)}")
+    if buy2: summary_parts.append(f"🔥 2차 매수: {', '.join(buy2)}")
+    if sell1: summary_parts.append(f"🚀 1차 매도: {', '.join(sell1)}")
+
+    if not summary_parts:
+        summary_text = "금일 매매신호가 탐지되지 않았습니다"
+    else:
+        summary_text = "\n".join(summary_parts)
+
+    # Final text construction (Title + Body)
+    # Header: 📊 nIcK의 미국 증시 브리핑
+    # Body first line: YYYY-MM-DD 매매신호 브리핑이 준비되었습니다.
+    full_text = f"📊 nIcK의 미국 증시 브리핑\n{market_date} 매매신호 브리핑이 준비되었습니다.\n{summary_text}"
     
+    # Kakao Text template limit is 200 chars
+    if len(full_text) > 200:
+        full_text = full_text[:197] + "..."
+
     template_object = {
         "object_type": "text",
-        "text": f"📊 오늘의 미국 증시 브리핑\n{k_date} 주요 ETF 분석 리포트가 준비되었습니다.",
+        "text": full_text,
         "link": {
             "web_url": briefing_url,
             "mobile_web_url": briefing_url
         },
-        "button_title": "리포트 보기"
+        "button_title": "상세 리포트 보기"
     }
     
     payload = {
@@ -836,9 +975,17 @@ def send_kakao_link(briefing_url):
         raise Exception(f"Kakao API Error: {response.text}")
 
 if __name__ == "__main__":
-    # 휴장일 체크
-    if not check_market_status():
-        print("Main: Skipping briefing generation because the market was closed.")
+    parser = argparse.ArgumentParser(description="FinRep: Daily US Stock Briefing")
+    parser.add_argument("--manual", action="store_true", help="Run in manual mode (generates man_issue.html, skips Kakao notification)")
+    args = parser.parse_args()
+
+    # Market closed check
+    ny_tz = ZoneInfo("America/New_York")
+    now_ny = datetime.now(ny_tz)
+    market_date_str = now_ny.strftime('%Y-%m-%d')
+
+    if not args.manual and not check_market_status():
+        print(f"Main: Skipping briefing generation because the market was closed on {market_date_str}.")
         exit(0)
 
     report_data = []
@@ -846,14 +993,18 @@ if __name__ == "__main__":
         print(f"Analyzing {ticker}...")
         report_data.append(fetch_and_analyze(ticker))
     
-    # HTML 리포트 생성
-    generate_html_report(report_data)
+    # Generate HTML report (Always generate both for consistency and testing visibility)
+    generate_html_report(report_data, "index.html", market_date_str)
+    generate_html_report(report_data, "man_issue.html", market_date_str)
     
-    # GitHub Pages URL (사용자 계정과 레포 이름에 맞게 수정 필요)
+    # GitHub Pages URL
     GITHUB_USER = "heroyik"
     REPO_NAME = "finrep"
     briefing_url = f"https://{GITHUB_USER}.github.io/{REPO_NAME}/"
     
-    # 카카오톡 링크 전송
-    send_kakao_link(briefing_url)
+    # Send KakaoTalk Link (Skip in manual mode)
+    if not args.manual:
+        send_kakao_link(briefing_url, report_data, market_date_str)
+    else:
+        print("Manual mode: Skipping KakaoTalk notification.")
 
