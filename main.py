@@ -375,27 +375,28 @@ def generate_html_report(results, filename="index.html", market_date=""):
     # ---------------------------------------------------------
     # Generate Summaries (Market Overview & Ticker Insights)
     # ---------------------------------------------------------
+    valid_results = [r for r in results if isinstance(r, dict)]
     market_overview = "Markets are currently processing AI sector consolidation, inflation expectations, and recent geopolitical developments affecting global trade sentiments."
     
     # Try to find a better overview from broad news (BTC-USD or index proxies)
-    for res in results:
-        if res['Symbol'] in ['BITU', 'USD'] and res['News']:
+    for res in valid_results:
+        if res.get('Symbol') in ['BITU', 'USD'] and res.get('News'):
             # Use a slightly more specific headline if available
             market_overview = f"Market pulse: {res['News'][0]['title']}"
             break
             
     ticker_summaries = []
-    for res in results:
+    for res in valid_results:
         insight = "Moving in line with broader market sentiment and sector momentum."
-        if res['News']:
+        if res.get('News'):
             insight = res['News'][0]['title']
-        elif res['Change'] > 3:
+        elif res.get('Change', 0) > 3:
             insight = "Strong upward momentum observed without specific immediate headlines."
-        elif res['Change'] < -3:
+        elif res.get('Change', 0) < -3:
             insight = "Undergoing price correction amid broader sector sell-off."
             
         ticker_summaries.append({
-            "symbol": res['Symbol'],
+            "symbol": res.get('Symbol', 'Unknown'),
             "insight": insight
         })
     
@@ -751,7 +752,6 @@ def generate_html_report(results, filename="index.html", market_date=""):
     """
     
     # Dashboard Content Logic
-    valid_results = [r for r in results if not isinstance(r, str)]
     buy1_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Buy1']]
     buy2_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Buy2']]
     sell1_tickers = [r['Symbol'] for r in valid_results if r['Signals']['Sell1']]
