@@ -158,7 +158,7 @@ def fetch_news(ticker_symbol):
         filtered_news = []
         
         if not news_list:
-            return []
+            return [], underlying
 
         seen_titles = set()
         seen_links = set()
@@ -212,7 +212,7 @@ def fetch_news(ticker_symbol):
                 if len(filtered_news) >= 3:
                     break
                     
-        return filtered_news
+        return filtered_news, underlying
     except Exception as e:
         print(f"Error fetching news for {underlying}: {e}")
         return [], underlying
@@ -380,7 +380,8 @@ def generate_html_report(results, filename="index.html", market_date=""):
     
     # Try to find a better overview from broad news (BTC-USD or index proxies)
     for res in valid_results:
-        if res.get('Symbol') in ['BITU', 'USD'] and res.get('News'):
+        # Check if News is a list and has items
+        if res.get('Symbol') in ['BITU', 'USD'] and isinstance(res.get('News'), list) and len(res['News']) > 0:
             # Use a slightly more specific headline if available
             market_overview = f"Market pulse: {res['News'][0]['title']}"
             break
@@ -388,8 +389,10 @@ def generate_html_report(results, filename="index.html", market_date=""):
     ticker_summaries = []
     for res in valid_results:
         insight = "Moving in line with broader market sentiment and sector momentum."
-        if res.get('News'):
-            insight = res['News'][0]['title']
+        news_items = res.get('News')
+        
+        if isinstance(news_items, list) and len(news_items) > 0:
+            insight = news_items[0]['title']
         elif res.get('Change', 0) > 3:
             insight = "Strong upward momentum observed without specific immediate headlines."
         elif res.get('Change', 0) < -3:
