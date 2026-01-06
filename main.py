@@ -173,6 +173,10 @@ def fetch_news(ticker_symbol):
             
             if not title or not link or title == "None": continue
             
+            # Deduplication Check
+            if title in seen_titles or link in seen_links:
+                continue
+
             # 제외 매체 체크
             if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
                 continue
@@ -185,6 +189,8 @@ def fetch_news(ticker_symbol):
                     "publisher": publisher,
                     "link": link
                 })
+                seen_titles.add(title)
+                seen_links.add(link)
             
             if len(filtered_news) >= 3: break
         
@@ -202,13 +208,18 @@ def fetch_news(ticker_symbol):
                 # 제외 매체 체크 (백업 루프에서도 제외)
                 if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
                     continue
+                
+                # Check duplication again (explicitly against seen sets)
+                if title in seen_titles or link in seen_links:
+                    continue
 
-                if title not in [fn['title'] for fn in filtered_news]:
-                    filtered_news.append({
-                        "title": title,
-                        "publisher": publisher,
-                        "link": link
-                    })
+                filtered_news.append({
+                    "title": title,
+                    "publisher": publisher,
+                    "link": link
+                })
+                seen_titles.add(title)
+                seen_links.add(link)
                 if len(filtered_news) >= 3:
                     break
                     

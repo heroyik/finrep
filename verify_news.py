@@ -6,6 +6,12 @@ import os
 # Add parent directory to path to import main
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# Mock heavy dependencies that might fail to install or aren't needed for news testing
+sys.modules['pandas_ta'] = MagicMock()
+sys.modules['mplfinance'] = MagicMock()
+sys.modules['matplotlib'] = MagicMock()
+sys.modules['matplotlib.pyplot'] = MagicMock()
+
 # Import the module to be tested
 # We will patch yfinance.Ticker inside the test methods
 import main
@@ -78,6 +84,22 @@ class TestFetchNews(unittest.TestCase):
                 "link": "https://reuters.com/news8",
                 "providerPublishTime": 1672345607,
                 "type": "STORY"
+            },
+            {
+                "uuid": "9",
+                "title": "Forbidden News (Barrons)",
+                "publisher": "Barrons.com",
+                "link": "https://barrons.com/news9",
+                "providerPublishTime": 1672345608,
+                "type": "STORY"
+            },
+            {
+                "uuid": "10",
+                "title": "Forbidden News (WSJ)",
+                "publisher": "The Wall Street Journal",
+                "link": "https://wsj.com/news10",
+                "providerPublishTime": 1672345609,
+                "type": "STORY"
             }
         ]
 
@@ -111,6 +133,8 @@ class TestFetchNews(unittest.TestCase):
         publishers = [r['publisher'] for r in results]
         self.assertNotIn("The Motley Fool", publishers, "Motley Fool should be excluded")
         self.assertNotIn("Small Blog", publishers, "Unknown publisher should be excluded")
+        self.assertNotIn("Barrons.com", publishers, "Barrons.com should be excluded")
+        self.assertNotIn("The Wall Street Journal", publishers, "WSJ should be excluded")
         
         # 2. Check Duplicates (by title or link)
         # In setup:
