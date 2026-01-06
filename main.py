@@ -32,12 +32,17 @@ UNDERLYING_MAP = {
     "OKLL": "OKLO"
 }
 
-# 메이저 뉴스 매체 리스트
-MAJOR_PUBLISHERS = [
-    "Reuters", "Bloomberg", "CNBC", "Financial Times", "WSJ", "Wall Street Journal", 
-    "MarketWatch", "Associated Press", "AP", "CNN", "Forbes", "Fortune", "Business Insider", 
-    "The New York Times", "NYT", "The Economist", "Barrons", "Investor's Business Daily", "IBD",
-    "Yahoo Finance"
+# 추천 무료 뉴스 매체 (사용자 요청 반영: AP, CNBC, Reuters, Yahoo, Investing, Stock Analysis)
+PREFERRED_PUBLISHERS = [
+    "Associated Press", "AP", "CNBC", "Reuters", "Yahoo Finance", 
+    "Investing.com", "Stock Analysis", "Bloomberg", "CNN", "Forbes", "Fortune", 
+    "Business Insider", "The New York Times", "NYT", "The Economist"
+]
+
+# 유료 결제 유도/페이월 매체 (제외 대상)
+EXCLUDED_PUBLISHERS = [
+    "The Motley Fool", "Motley Fool", "Barrons", "Barron's", 
+    "Wall Street Journal", "WSJ", "MarketWatch", "Investor's Business Daily", "IBD"
 ]
 
 def fetch_and_analyze(ticker_symbol):
@@ -156,7 +161,12 @@ def fetch_news(ticker_symbol):
             
             if not title or not link or title == "None": continue
             
-            if any(major.lower() in publisher.lower() for major in MAJOR_PUBLISHERS):
+            # 제외 매체 체크
+            if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
+                continue
+
+            # 선호 매체 체크
+            if any(pref.lower() in publisher.lower() for pref in PREFERRED_PUBLISHERS):
                 filtered_news.append({
                     "title": title,
                     "publisher": publisher,
@@ -178,6 +188,10 @@ def fetch_news(ticker_symbol):
                 
                 if not title or not link or title == "None": continue
                 
+                # 제외 매체 체크 (백업 루프에서도 제외)
+                if any(ex.lower() in publisher.lower() for ex in EXCLUDED_PUBLISHERS):
+                    continue
+
                 if title not in [fn['title'] for fn in filtered_news]:
                     filtered_news.append({
                         "title": title,
