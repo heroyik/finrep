@@ -624,7 +624,7 @@ def generate_html_report(results, filename="index.html", market_date=""):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily US Stock Briefing - {now_kst.strftime('%Y-%m-%d')}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
         <style>
             :root {{
                 --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -656,20 +656,31 @@ def generate_html_report(results, filename="index.html", market_date=""):
             }}
             header {{
                 text-align: center;
-                margin-bottom: 40px;
+                margin-bottom: 25px;
+                padding: 20px;
+                border: 2px solid #0ff;
+                border-radius: 12px;
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+                background: rgba(10, 10, 10, 0.8);
             }}
             h1 {{
-                font-size: 2.5rem;
-                font-weight: 800;
-                margin-bottom: 10px;
-                background: linear-gradient(to right, #38bdf8, #818cf8);
+                font-family: 'Orbitron', sans-serif;
+                font-weight: 900;
+                font-size: 2.2rem;
+                text-transform: uppercase;
+                background: linear-gradient(90deg, #ff00de, #00ffea);
                 -webkit-background-clip: text;
-                background-clip: text;
                 -webkit-text-fill-color: transparent;
+                text-shadow: 0 0 15px rgba(255, 0, 222, 0.4);
+                letter-spacing: 1px;
+                margin: 0 0 10px 0;
+                line-height: 1.1;
             }}
-            .date {{
-                color: var(--text-dim);
-                font-size: 1rem;
+            .header-sub {{
+                font-family: 'Orbitron', sans-serif;
+                color: #00ffea;
+                letter-spacing: 2px;
+                font-size: 0.9rem;
             }}
             
             /* Dashboard Section */
@@ -1011,11 +1022,8 @@ def generate_html_report(results, filename="index.html", market_date=""):
         <div class="container">
             <header>
                 <h1>Daily US Stock Briefing</h1>
-                <p>Updated at: {date_str}</p>
-                <p style="font-weight: 600;">{market_date_line}</p>
-                <div style="margin-top: 10px; font-size: 0.9rem;">
-                    Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy
-                </div>
+                <div class="header-sub">{date_str}</div>
+                <div class="header-sub" style="font-size: 0.8rem; margin-top: 5px; color: rgba(255, 255, 255, 0.7);">{market_date_line}</div>
             </header>
             
             <!-- Signal Dashboard -->
@@ -1219,7 +1227,7 @@ def generate_html_report(results, filename="index.html", market_date=""):
     html_template += """
             </div>
             <footer>
-                <p>Crafted by antigravity based on <a href="mailto:heroyik@gmail.com" style="color: inherit; text-decoration: underline;">nIcK</a>'s investment strategy</p>
+                <p>Crafted by Google Antigravity based on <a href="https://heroyik.github.io" target="_blank" style="color: inherit; text-decoration: underline;">nIcK</a>'s trading strategy</p>
             </footer>
         </div>
 

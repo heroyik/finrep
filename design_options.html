@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Header Design Options</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Outfit:wght@800&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #050505;
+        color: white;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 50px;
+        padding: 50px;
+      }
+      .option-container {
+        width: 100%;
+        max-width: 800px;
+        padding: 40px;
+        border: 1px solid #333;
+        border-radius: 20px;
+        text-align: center;
+        position: relative;
+      }
+      .label {
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        background: #fff;
+        color: #000;
+        padding: 5px 15px;
+        font-weight: bold;
+        border-radius: 10px;
+      }
+
+      /* Option A: Cyberpunk Neon */
+      .option-a {
+        background: #0a0a0a;
+        border: 2px solid #0ff;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      }
+      .header-a {
+        font-family: "Orbitron", sans-serif;
+        font-weight: 900;
+        font-size: 3rem;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #ff00de, #00ffea);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(255, 0, 222, 0.5);
+        letter-spacing: 2px;
+        margin: 0;
+      }
+      .sub-a {
+        font-family: "Orbitron", sans-serif;
+        color: #00ffea;
+        margin-top: 10px;
+        letter-spacing: 4px;
+      }
+
+      /* Option B: Supernova Gradient (Maximalist) */
+      .option-b {
+        background: radial-gradient(circle at top right, #4a00e0, #8e2de2);
+        overflow: hidden;
+      }
+      .header-b {
+        font-family: "Outfit", sans-serif;
+        font-weight: 800;
+        font-size: 3.5rem;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+        margin: 0;
+      }
+      .sub-b {
+        font-family: "Outfit", sans-serif;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 15px;
+        font-size: 1.2rem;
+      }
+
+      /* Option C: Electric Glitch */
+      .option-c {
+        background: #111;
+        background-image: linear-gradient(
+            rgba(0, 255, 0, 0.1) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .header-c {
+        font-family: "Orbitron", sans-serif;
+        font-weight: 900;
+        font-size: 3rem;
+        color: #fff;
+        text-shadow: 3px 3px 0 #ff0000, -3px -3px 0 #0000ff;
+        margin: 0;
+      }
+      .sub-c {
+        font-family: monospace;
+        background: #fff;
+        color: #000;
+        display: inline-block;
+        padding: 5px 10px;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="option-container option-a">
+      <div class="label">Option A: Cyberpunk Neon</div>
+      <h1 class="header-a">Daily US<br />Stock Briefing</h1>
+      <div class="sub-a">SYSTEM ONLINE // 2026-01-06</div>
+    </div>
+
+    <div class="option-container option-b">
+      <div class="label">Option B: Supernova</div>
+      <h1 class="header-b">DAILY US<br />STOCK BRIEFING</h1>
+      <div class="sub-b">Market Pulse: Active • 2026-01-06</div>
+    </div>
+
+    <div class="option-container option-c">
+      <div class="label">Option C: Electric Glitch</div>
+      <h1 class="header-c">DAILY US<br />STOCK BRIEFING</h1>
+      <div class="sub-c">>> UPDATED: 2026-01-06</div>
+    </div>
+  </body>
+</html>
