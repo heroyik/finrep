@@ -122,4 +122,4 @@ MIT License.
 
 ## 👨‍💻 Credits
 
-Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy.
+Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. (Updated: 2026-01-06)
