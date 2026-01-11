@@ -6,6 +6,7 @@ import json
 def refresh_token():
     client_id = os.environ.get('KAKAO_CLIENT_ID')
     refresh_token = os.environ.get('KAKAO_REFRESH_TOKEN')
+    client_secret = os.environ.get('KAKAO_CLIENT_SECRET')
 
     if not client_id or not refresh_token:
         print("Error: KAKAO_CLIENT_ID or KAKAO_REFRESH_TOKEN environment variables are not set.")
@@ -17,6 +18,9 @@ def refresh_token():
         "client_id": client_id,
         "refresh_token": refresh_token
     }
+    
+    if client_secret:
+        data["client_secret"] = client_secret
 
     try:
         response = requests.post(url, data=data)
