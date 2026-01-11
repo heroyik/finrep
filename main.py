@@ -1292,7 +1292,7 @@ def get_last_trading_date():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="FinRep: Daily US Stock Briefing")
-    parser.add_argument("--manual", action="store_true", help="Run in manual mode (generates man_issue.html, skips Kakao notification)")
+    parser.add_argument("--manual", action="store_true", help="Run in manual mode (updates index.html, skips Kakao notification)")
     args = parser.parse_args()
 
     # 1. Determine Target Date (Clock Time in NY) - What day is it locally?
@@ -1340,9 +1340,8 @@ if __name__ == "__main__":
         print(f"Analyzing {ticker}...")
         report_data.append(fetch_and_analyze(ticker))
     
-    # Generate HTML report (Always generate both for consistency and testing visibility)
+    # Generate HTML report
     generate_html_report(report_data, "index.html", market_date_str)
-    generate_html_report(report_data, "man_issue.html", market_date_str)
     
     # GitHub Pages URL
     GITHUB_USER = "heroyik"

@@ -30,12 +30,12 @@ FinRep is an automated, high-precision system designed to empower investors with
   - **Intelligent Holiday Detection**: Automatically monitors US market status (via SPY) to skip generation during holidays or weekends.
   - **Precise Market Dating**: Reports reflect the *actual* trading date analyzed (e.g., Friday's data for a Sunday report) rather than the generation timestamp.
   - **Zero-Touch Automation**: Runs with 100% reliability every day at 7:00 AM KST via GitHub Actions.
-- **Manual Issuance Support**: Ability to manually trigger report generation via `--manual` flag for testing and verification. This generates a backup report `man_issue.html` while skipping KakaoTalk notifications.
+- **Manual Issuance Support**: Ability to manually trigger report generation via `--manual` flag for testing and verification. This updates `index.html` while skipping KakaoTalk notifications.
 
 ## 🔗 Live Reports
 
 - **Latest Briefing**: [**https://heroyik.github.io/finrep/**](https://heroyik.github.io/finrep/)
-- **Manual/Test Issue**: [**https://heroyik.github.io/finrep/man_issue.html**](https://heroyik.github.io/finrep/man_issue.html)
+
 
 ## 🛠 Tech Stack
 
