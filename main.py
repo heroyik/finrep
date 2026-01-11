@@ -1314,15 +1314,22 @@ if __name__ == "__main__":
     print(f"Data Date (SPY):  {data_date_str}")
 
     # 3. Check for Auto-Run Validity
-    if not args.manual:
+    # Only skip generation on SCHEDULED runs if the market was closed on the target date.
+    # Manual runs (--manual) or Push triggers (GITHUB_EVENT_NAME != 'schedule') should always proceed 
+    # using the latest available data (data_date_str).
+    is_scheduled = os.environ.get('GITHUB_EVENT_NAME') == 'schedule'
+    
+    if not args.manual and is_scheduled:
         # If auto-schedule, we only run if the Market has CLOSED for the 'Target Date'.
         # Since we run at 07:00 KST (17:00 EST), the Data Date matches Target Date if market was open.
         # If target != data, it means market was closed on Target Date (e.g. Holiday or Weekend).
         if target_date_str != data_date_str:
             print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {data_date_str})")
-            print("Skipping briefing generation.")
+            print("Skipping scheduled briefing generation.")
             exit(0)
-        print("✅ Market was OPEN. Proceeding.")
+        print("✅ Market was OPEN on scheduled target date. Proceeding.")
+    else:
+        print(f"✅ Proceeding with briefing (Trigger: {'Manual' if args.manual else 'Github Push/Dispatch'}).")
 
     # 4. Set the official Reference Market Date for the report
     # ALWAYS use the Data Date, so the report says "Analysis of Jan 5" even if generated on "Jan 6 morning".
