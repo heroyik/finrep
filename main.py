@@ -526,44 +526,7 @@ def get_access_token():
         raise Exception(f"Error refreshing token: {tokens}")
 
 
-def check_market_status():
-    """
-    Check the last trading day of SPY (S&P 500 ETF) to 
-    determine if the US market was closed on the previous day.
-    """
-    try:
-        # 1. Check current US Eastern Time (New York)
-        # Github Actions runs at 07:00 KST -> US is 17:00/18:00 the previous day (after market close)
-        # Check if "US Local Date" matches "Last Trading Day".
-        ny_tz = ZoneInfo("America/New_York")
-        now_ny = datetime.now(ny_tz)
-        target_date_str = now_ny.strftime('%Y-%m-%d')
-        print(f"Checking market status for US Date: {target_date_str}")
 
-        # 2. Query SPY data (last 5 days)
-        spy = yf.Ticker("SPY")
-        hist = spy.history(period="5d")
-        
-        if hist.empty:
-            print("❌ Critical: Unable to fetch SPY data for market check.")
-            return False # Proceed safely (or decide to stop)
-
-        last_date = hist.index[-1].date()
-        last_date_str = last_date.strftime('%Y-%m-%d')
-        print(f"Latest market data available: {last_date_str}")
-
-        # 3. Determine if market was closed
-        if last_date_str != target_date_str:
-            print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {last_date_str})")
-            return False
-        
-        print("✅ Market was OPEN.")
-        return True
-
-    except Exception as e:
-        print(f"Warning: Market status check failed: {e}")
-        # Proceed if check fails (safety measure)
-        return True
 
 
 
@@ -1315,19 +1278,55 @@ def send_kakao_link(briefing_url, results, market_date):
         print(f"Failed to send KakaoTalk message: {response.status_code} - {response.text}")
         raise Exception(f"Kakao API Error: {response.text}")
 
+def get_last_trading_date():
+    """Fetches the last trading date from SPY history."""
+    try:
+        spy = yf.Ticker("SPY")
+        hist = spy.history(period="5d")
+        if hist.empty:
+            return None
+        return hist.index[-1].date().strftime('%Y-%m-%d')
+    except Exception as e:
+        print(f"Error fetching last trading date: {e}")
+        return None
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="FinRep: Daily US Stock Briefing")
     parser.add_argument("--manual", action="store_true", help="Run in manual mode (generates man_issue.html, skips Kakao notification)")
     args = parser.parse_args()
 
-    # Market closed check
+    # 1. Determine Target Date (Clock Time in NY) - What day is it locally?
     ny_tz = ZoneInfo("America/New_York")
     now_ny = datetime.now(ny_tz)
-    market_date_str = now_ny.strftime('%Y-%m-%d')
+    target_date_str = now_ny.strftime('%Y-%m-%d')
 
-    if not args.manual and not check_market_status():
-        print(f"Main: Skipping briefing generation because the market was closed on {market_date_str}.")
-        exit(0)
+    # 2. Determine Data Date (Market Reality) - What was the last actual trading day?
+    data_date_str = get_last_trading_date()
+    
+    if not data_date_str:
+        print("❌ Critical: Unable to fetch SPY data to determine market date.")
+        # Determine fallback behavior? exit or fallback to target
+        if not args.manual:
+            exit(1)
+        data_date_str = target_date_str # Fallback for manual if internet is weird but we want to try?
+
+    print(f"Target Date (NY): {target_date_str}")
+    print(f"Data Date (SPY):  {data_date_str}")
+
+    # 3. Check for Auto-Run Validity
+    if not args.manual:
+        # If auto-schedule, we only run if the Market has CLOSED for the 'Target Date'.
+        # Since we run at 07:00 KST (17:00 EST), the Data Date matches Target Date if market was open.
+        # If target != data, it means market was closed on Target Date (e.g. Holiday or Weekend).
+        if target_date_str != data_date_str:
+            print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {data_date_str})")
+            print("Skipping briefing generation.")
+            exit(0)
+        print("✅ Market was OPEN. Proceeding.")
+
+    # 4. Set the official Reference Market Date for the report
+    # ALWAYS use the Data Date, so the report says "Analysis of Jan 5" even if generated on "Jan 6 morning".
+    market_date_str = data_date_str
 
     report_data = []
     for ticker in TICKERS:
