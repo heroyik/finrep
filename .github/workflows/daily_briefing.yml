@@ -32,7 +32,15 @@ jobs:
           pip install -r requirements.txt
           pip list
 
+      - name: Check Market Status
+        id: check_market
+        run: python scripts/check_market.py
+
       - name: Run analysis script
+        if: |
+          (steps.check_market.outputs.is_open == 'true') || 
+          (github.event_name == 'workflow_dispatch') || 
+          (github.event_name == 'push')
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
@@ -40,6 +48,10 @@ jobs:
         run: python main.py
 
       - name: Debug and Deploy
+        if: |
+          (steps.check_market.outputs.is_open == 'true') || 
+          (github.event_name == 'workflow_dispatch') || 
+          (github.event_name == 'push')
         run: |
           ls -R public
           git config --global user.name "github-actions[bot]"

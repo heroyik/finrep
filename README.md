@@ -27,10 +27,9 @@ FinRep is an automated, high-precision system designed to empower investors with
   - **US Market Date Integration**: Specifically mentions the actual US trading date analyzed, synchronizing perfectly with market hours.
   - **One-Tap Access**: Features a direct **"상세 리포트 보기"** (View Detailed Report) button for a deep-dive into the full analysis.
 - **Smart Scheduling & Reliability**:
-- **Intelligent Holiday Detection**: Automatically monitors US market status (via SPY) to skip generation during holidays or weekends for scheduled cron runs.
-- **Manual Override**: Workflow dispatch (manual trigger) explicitly overrides holiday detection, allowing for on-demand reports regardless of market status.
-- **Precise Market Dating**: Reports reflect the *actual* trading date analyzed (e.g., Friday's data for a Sunday report) rather than the generation timestamp.
-- **Zero-Touch Automation**: Runs with 100% reliability every day at 7:00 AM KST via GitHub Actions.
+- **Intelligent Holiday Detection**: Automatically monitors US market status (via SPY) to skip generation and messaging during holidays or weekends for scheduled cron runs.
+- **Workflow-Level Skip**: All major steps (Analysis, KakaoTalk, Deploy) are guarded by a market status check, ensuring a clean skip on non-trading days.
+- **Manual Override**: Workflow dispatch (manual trigger) explicitly overrides holiday detection, allowing for on-demand reports and messages regardless of market status.
 - **Manual Issuance Support**: Ability to manually trigger report generation via `--manual` flag for testing and verification. This updates `index.html` while skipping KakaoTalk notifications.
 
 ## 🔗 Live Reports
