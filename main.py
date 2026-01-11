@@ -1314,22 +1314,25 @@ if __name__ == "__main__":
     print(f"Data Date (SPY):  {data_date_str}")
 
     # 3. Check for Auto-Run Validity
-    # Only skip generation on SCHEDULED runs if the market was closed on the target date.
-    # Manual runs (--manual) or Push triggers (GITHUB_EVENT_NAME != 'schedule') should always proceed 
-    # using the latest available data (data_date_str).
-    is_scheduled = os.environ.get('GITHUB_EVENT_NAME') == 'schedule'
+    # Only skip generation on SCHEDULED (cron) runs if the market was closed on the target date.
+    # Manual runs (workflow_dispatch, manual flag) or Push triggers should always proceed.
+    event_name = os.environ.get('GITHUB_EVENT_NAME', 'manual')
+    is_scheduled = (event_name == 'schedule')
+    is_manual = (event_name == 'workflow_dispatch') or args.manual
     
-    if not args.manual and is_scheduled:
-        # If auto-schedule, we only run if the Market has CLOSED for the 'Target Date'.
-        # Since we run at 07:00 KST (17:00 EST), the Data Date matches Target Date if market was open.
+    if is_scheduled:
+        # If auto-schedule, we only run if the Market was OPEN for the 'Target Date'.
+        # Since we run at 07:00 KST (17:00/18:00 EST), the Data Date matches Target Date if market was open.
         # If target != data, it means market was closed on Target Date (e.g. Holiday or Weekend).
         if target_date_str != data_date_str:
             print(f"🚫 Market was CLOSED on {target_date_str}. (Last open: {data_date_str})")
-            print("Skipping scheduled briefing generation.")
+            print("Skipping scheduled briefing generation for holiday/weekend.")
             exit(0)
-        print("✅ Market was OPEN on scheduled target date. Proceeding.")
+        print(f"✅ Market was OPEN on {target_date_str}. Proceeding with scheduled run.")
+    elif is_manual:
+        print(f"✅ Manual execution triggered (Event: {event_name}). Proceeding regardless of market status.")
     else:
-        print(f"✅ Proceeding with briefing (Trigger: {'Manual' if args.manual else 'Github Push/Dispatch'}).")
+        print(f"✅ Proceeding with briefing (Trigger: {event_name}). Using latest data from {data_date_str}.")
 
     # 4. Set the official Reference Market Date for the report
     # ALWAYS use the Data Date, so the report says "Analysis of Jan 5" even if generated on "Jan 6 morning".
