@@ -109,6 +109,19 @@ Go to your repository **Settings > Secrets and variables > Actions** and add the
 3. Select **Read and write permissions**.
 4. Click **Save**.
 
+### 5. Config Token Auto-Refresh (Optional but Recommended)
+
+To enable automatic token refresh (monthly), you must provide a **Personal Access Token (PAT)** so the workflow can update the repository secrets.
+
+1. Go to your GitHub **Settings > Developer settings > Personal access tokens > Tokens (classic)**.
+2. Generate a new token (classic) with the **`repo`** scope (Full control of private repositories).
+3. Copy the token.
+4. Go to your repository **Settings > Secrets and variables > Actions**.
+5. Add a new secret:
+   - **Name**: `GH_PAT`
+   - **Value**: (Paste your PAT here)
+
+
 ## 📅 Schedule
 
 The automation script is scheduled via `.github/workflows/daily_briefing.yml`:

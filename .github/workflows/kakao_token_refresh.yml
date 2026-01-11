@@ -1,0 +1,56 @@
+name: Kakao Token Refresh
+
+on:
+  schedule:
+    # Run at 00:00 KST on the 1st of every month (15:00 UTC on the last day of the previous month)
+    - cron: "0 15 28-31 * *"
+    # Actually, to be safe and simple, let's run it on the 1st day of the month.
+    # KST is UTC+9. 00:00 KST = 15:00 UTC previous day.
+    # Let's just run it at a reasonable time. The user asked for "once a month".
+    # 00:00 UTC on the 1st of every month is fine.
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  refresh_token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Refresh Token
+        id: refresh_step
+        env:
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+        run: |
+          output=$(python scripts/refresh_kakao_token.py)
+          echo "$output"
+
+          # Parse output for new token
+          new_token=$(echo "$output" | grep "NEW_REFRESH_TOKEN=" | cut -d'=' -f2)
+
+          if [ ! -z "$new_token" ]; then
+            echo "NEW_REFRESH_TOKEN_FOUND=true" >> $GITHUB_ENV
+            echo "NEW_REFRESH_TOKEN=$new_token" >> $GITHUB_ENV
+            # Mask the new token so it doesn't show up in logs
+            echo "::add-mask::$new_token"
+          else
+            echo "NEW_REFRESH_TOKEN_FOUND=false" >> $GITHUB_ENV
+          fi
+
+      - name: Update GitHub Secret
+        if: env.NEW_REFRESH_TOKEN_FOUND == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh secret set KAKAO_REFRESH_TOKEN --body "${{ env.NEW_REFRESH_TOKEN }}"
+          echo "Updated KAKAO_REFRESH_TOKEN in GitHub Secrets."
