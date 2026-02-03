@@ -1,0 +1,26 @@
+# MCP Playwright Installation
+node_modules/
+package.json
+package-lock.json
+
+# Standard ignores
+.env
+.env.local
+*.pem
+*.key
+auth.json
+dist/
+build/
+.next/
+out/
+Thumbs.db
+.DS_Store
+desktop.ini
+*.log
+npm-debug.log*
+yarn-error.log*
+.cache/
+.vscode/
+.idea/
+.antigravity/
+*.blend
