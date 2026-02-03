@@ -56,7 +56,7 @@ EXCLUDED_PUBLISHERS = [
 def fetch_and_analyze(ticker_symbol):
     try:
         ticker = yf.Ticker(ticker_symbol)
-        df = ticker.history(period="1y")
+        df = ticker.history(period="max")
         
         if df.empty:
             return f"❌ {ticker_symbol}: Unable to fetch data."
@@ -426,8 +426,8 @@ def fetch_market_news():
     return unique_news
 
 def generate_chart(symbol, df, filename):
-    # Use only recent 60 trading days (Chart Readability)
-    plot_df = df.tail(60).copy()
+    # Use more trading days for better context (120 days)
+    plot_df = df.tail(120).copy()
     
     # Remove empty data
     plot_df = plot_df.dropna(subset=['Open', 'High', 'Low', 'Close'])
@@ -486,9 +486,9 @@ def generate_chart(symbol, df, filename):
     )
     
     # Reflect user feedback: Reduce left margin per orange guideline (0.2 -> 0.12)
-    # Maintain right margin (right=0.8)
+    # Maintain right margin (right=0.8) -> Increased to 0.85 for labels
     # Maintain top/bottom margins (top=0.8, bottom=0.2)
-    plt.subplots_adjust(left=0.12, right=0.8, top=0.8, bottom=0.2)
+    plt.subplots_adjust(left=0.12, right=0.85, top=0.8, bottom=0.2)
     
     # Legend settings (Simple)
     axes[0].legend(loc='upper left', fontsize=6, frameon=False)
@@ -500,6 +500,19 @@ def generate_chart(symbol, df, filename):
     # Axis alignment settings
     axes[0].set_ylabel('')
     axes[2].set_ylabel('')
+    
+    # Add Current EMA values as text labels on the right margin
+    last_p = plot_df.iloc[-1]
+    last_vals = []
+    if 'EMA20' in last_p: last_vals.append(('EMA20', last_p['EMA20'], '#f59e0b'))
+    if 'EMA60' in last_p: last_vals.append(('EMA60', last_p['EMA60'], '#8b5cf6'))
+    if 'EMA120' in last_p: last_vals.append(('EMA120', last_p['EMA120'], '#475569'))
+    
+    # Sort by value for clean vertical placement logic if needed, but simple for now
+    for name, val, color in last_vals:
+        if not pd.isna(val):
+            axes[0].text(len(plot_df)-0.5, val, f' {val:.2f}', color=color, 
+                        fontsize=6, fontweight='bold', va='center', ha='left')
     
     # Font and tick settings (Adjust pad so numbers appear outside the chart box with sufficient space)
     for ax in axes:
