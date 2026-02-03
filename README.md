@@ -18,6 +18,7 @@ FinRep is an automated, high-precision system designed to empower investors with
   - **Underlying Asset Insights**: For leveraged ETFs (e.g., BITU), it intelligently fetches news for the underlying asset (e.g., BTC-USD) and explicitly indicates the base asset in the report for better context.
 - **Premium Charting**:
   - **Minimalist Design**: Symmetric margins, custom EMA color palettes (Orange/Purple/Slate), and clear visibility.
+  - **High/Low Annotations**: Automatically marks the 120-day peak and trough prices on the chart.
   - **Interactive Analysis**: Features a **Click-to-Zoom** modal for high-resolution chart inspection.
 - **Visualized Report**: Generates a sleek, dark-themed HTML report (Fully English) hosted on GitHub Pages with **KST Timezone** support.
 - **Smart KakaoTalk Notifications**:
@@ -136,4 +137,4 @@ MIT License.
 
 ## 👨‍💻 Credits
 
-Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-01-11)
+Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-02-03)

@@ -519,6 +519,43 @@ def generate_chart(symbol, df, filename):
         ax.tick_params(axis='y', labelsize=6, pad=5)
         ax.tick_params(axis='x', labelsize=6, pad=5)
     
+    # Add High/Low price annotations
+    # Find max high and min low in the plot_df
+    max_idx = plot_df['High'].idxmax()
+    max_val = plot_df.loc[max_idx, 'High']
+    min_idx = plot_df['Low'].idxmin()
+    min_val = plot_df.loc[min_idx, 'Low']
+
+    # Get the numeric index for plotting
+    # Since we are using a range(len(plot_df)) internally for mpf if not specified, 
+    # we need the position.
+    max_pos = plot_df.index.get_loc(max_idx)
+    min_pos = plot_df.index.get_loc(min_idx)
+
+    # Annotate Highest Point
+    axes[0].annotate(f'{max_val:.2f}',
+                 xy=(max_pos, max_val),
+                 xytext=(0, 5),
+                 textcoords='offset points',
+                 ha='center',
+                 va='bottom',
+                 fontsize=6,
+                 fontweight='bold',
+                 color='#f43f5e',
+                 arrowprops=dict(arrowstyle='-', color='#f43f5e', linewidth=0.5))
+
+    # Annotate Lowest Point
+    axes[0].annotate(f'{min_val:.2f}',
+                 xy=(min_pos, min_val),
+                 xytext=(0, -5),
+                 textcoords='offset points',
+                 ha='center',
+                 va='top',
+                 fontsize=6,
+                 fontweight='bold',
+                 color='#10b981',
+                 arrowprops=dict(arrowstyle='-', color='#10b981', linewidth=0.5))
+
     plt.savefig(full_path, dpi=160)
     plt.close()
     if os.path.exists(full_path):
