@@ -118,6 +118,10 @@ def fetch_and_analyze(ticker_symbol):
         # 2nd Buy: 1st Buy Condition Met AND RSI < 30
         is_buy_2 = is_buy_1 and (c_rsi < 30)
         
+        # If it's a 2nd Buy, remove it from 1st Buy list as requested by user
+        if is_buy_2:
+            is_buy_1 = False
+        
         # 1st Sell: Bullish Alignment (20 > 60 > 120*) AND Close > EMA20 AND RSI > 70
         # *EMA 120 is included in alignment check only if available (for new listings)
         alignment_sell = (c_ema20 > c_ema60)
