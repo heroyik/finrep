@@ -37,6 +37,7 @@ jobs:
         run: python scripts/check_market.py
 
       - name: Run analysis script
+        id: analysis
         if: |
           (steps.check_market.outputs.is_open == 'true') || 
           (github.event_name == 'workflow_dispatch') || 
@@ -49,16 +50,16 @@ jobs:
           python main.py 2>&1 | tee output.txt
           NEW_TOKEN=$(grep "NEW_KAKAO_REFRESH_TOKEN:" output.txt | cut -d':' -f2 | tr -d '\r\n')
           if [ ! -z "$NEW_TOKEN" ]; then
-            echo "NEW_KAKAO_REFRESH_TOKEN=$NEW_TOKEN" >> $GITHUB_ENV
+            echo "new_kakao_refresh_token=$NEW_TOKEN" >> $GITHUB_OUTPUT
             echo "::add-mask::$NEW_TOKEN"
           fi
 
       - name: Update Kakao Secret automatically
-        if: env.NEW_KAKAO_REFRESH_TOKEN != ''
+        if: steps.analysis.outputs.new_kakao_refresh_token != ''
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          gh secret set KAKAO_REFRESH_TOKEN --body "${{ env.NEW_KAKAO_REFRESH_TOKEN }}"
+          gh secret set KAKAO_REFRESH_TOKEN --body "${{ steps.analysis.outputs.new_kakao_refresh_token }}"
           echo "Successfully updated KAKAO_REFRESH_TOKEN secret from daily run."
 
       - name: Debug and Deploy

@@ -41,18 +41,18 @@ jobs:
           new_token=$(echo "$output" | grep "NEW_REFRESH_TOKEN=" | cut -d'=' -f2)
 
           if [ ! -z "$new_token" ]; then
-            echo "NEW_REFRESH_TOKEN_FOUND=true" >> $GITHUB_ENV
-            echo "NEW_REFRESH_TOKEN=$new_token" >> $GITHUB_ENV
+            echo "new_refresh_token_found=true" >> $GITHUB_OUTPUT
+            echo "new_refresh_token=$new_token" >> $GITHUB_OUTPUT
             # Mask the new token so it doesn't show up in logs
             echo "::add-mask::$new_token"
           else
-            echo "NEW_REFRESH_TOKEN_FOUND=false" >> $GITHUB_ENV
+            echo "new_refresh_token_found=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Update GitHub Secret
-        if: env.NEW_REFRESH_TOKEN_FOUND == 'true'
+        if: steps.refresh_step.outputs.new_refresh_token_found == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          gh secret set KAKAO_REFRESH_TOKEN --body "${{ env.NEW_REFRESH_TOKEN }}"
+          gh secret set KAKAO_REFRESH_TOKEN --body "${{ steps.refresh_step.outputs.new_refresh_token }}"
           echo "Updated KAKAO_REFRESH_TOKEN in GitHub Secrets."
