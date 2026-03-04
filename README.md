@@ -37,7 +37,6 @@ FinRep is an automated, high-precision system designed to empower investors with
 
 - **Latest Briefing**: [**https://heroyik.github.io/finrep/**](https://heroyik.github.io/finrep/)
 
-
 ## 🛠 Tech Stack
 
 - **Language**: Python 3.13
@@ -123,6 +122,20 @@ To enable automatic token refresh (monthly), you must provide a **Personal Acces
    - **Name**: `GH_PAT`
    - **Value**: (Paste your PAT here)
 
+## 🆘 Troubleshooting: Kakao Token Expiration (KOE322)
+
+If you see the error `KOE322: expired_or_invalid_refresh_token` in GitHub Action logs, it means the automated refresh system has failed to sync in time (or was blocked by missing permissions). This requires a one-time manual recovery:
+
+1. **Generate New Token**: Run `python get_kakao_token.py` on your local machine.
+2. **Follow Prompt**: Copy the Auth URL, log in, and enter the code into the script.
+3. **Update GitHub Secrets**: Copy the new `REFRESH_TOKEN` provided by the script and update the `KAKAO_REFRESH_TOKEN` secret in your repository (**Settings > Secrets and variables > Actions**).
+4. **Trigger Manual Run**: Manually run the "Daily Stock Briefing" workflow to verify the fix.
+
+### 🛡️ Robust Auto-Refresh Mechanism
+
+* **Daily Sync**: The system now checks for new refresh tokens during *every* daily run. If Kakao issues a new token, it is automatically detected and the GitHub Secret is updated immediately using the `gh` CLI.
+- **Weekly Backup**: A standalone refresh workflow runs every Sunday at 00:00 UTC to ensure tokens are kept alive even if no briefing is sent for a long period.
+- **Prerequisite**: This requires a `GH_PAT` (Personal Access Token) secret with `repo` permissions to update your repository secrets automatically.
 
 ## 📅 Schedule
 
@@ -137,4 +150,4 @@ MIT License.
 
 ## 👨‍💻 Credits
 
-Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-02-03)
+Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-03-04, Revision: 2.1.0)

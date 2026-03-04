@@ -574,9 +574,23 @@ def get_access_token():
     }
     response = requests.post(url, data=data)
     tokens = response.json()
+    
+    # Kakao sometimes issues a new refresh_token during the access_token refresh process.
+    # We catch this and print it so that GitHub Actions can update the secret automatically.
+    if "refresh_token" in tokens:
+        print(f"NEW_KAKAO_REFRESH_TOKEN:{tokens['refresh_token']}")
+        
     if "access_token" in tokens:
         return tokens["access_token"]
     else:
+        error_code = tokens.get("error_code")
+        if error_code == "KOE322":
+            print("\n" + "!" * 60)
+            print("CRITICAL ERROR: Kakao Refresh Token has EXPIRED (KOE322).")
+            print("The automated refresh system cannot recover from this state.")
+            print("Please run 'python get_kakao_token.py' on your local machine,")
+            print("generate a new token, and update KAKAO_REFRESH_TOKEN in GitHub Secrets.")
+            print("!" * 60 + "\n")
         raise Exception(f"Error refreshing token: {tokens}")
 
 

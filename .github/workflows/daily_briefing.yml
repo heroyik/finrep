@@ -45,7 +45,21 @@ jobs:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
-        run: python main.py
+        run: |
+          python main.py 2>&1 | tee output.txt
+          NEW_TOKEN=$(grep "NEW_KAKAO_REFRESH_TOKEN:" output.txt | cut -d':' -f2 | tr -d '\r\n')
+          if [ ! -z "$NEW_TOKEN" ]; then
+            echo "NEW_KAKAO_REFRESH_TOKEN=$NEW_TOKEN" >> $GITHUB_ENV
+            echo "::add-mask::$NEW_TOKEN"
+          fi
+
+      - name: Update Kakao Secret automatically
+        if: env.NEW_KAKAO_REFRESH_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh secret set KAKAO_REFRESH_TOKEN --body "${{ env.NEW_KAKAO_REFRESH_TOKEN }}"
+          echo "Successfully updated KAKAO_REFRESH_TOKEN secret from daily run."
 
       - name: Debug and Deploy
         if: |

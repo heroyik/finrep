@@ -8,6 +8,12 @@ import requests
 
 print("=== Kakao Initial Token Helper ===")
 rest_api_key = input("Enter REST API Key: ")
+print("\n--- How to find Client Secret (Updated UI) ---")
+print("1. [앱 설정] > [앱 키] (또는 플랫폼 키)")
+print("2. [REST API 키] 항목 옆의 '설정' 또는 하단 확인")
+print("3. 'Client Secret' 항목의 코드를 복사")
+print("4. (주의) '활성화 상태'가 ON이어야 합니다.")
+client_secret = input("Enter Client Secret: ")
 redirect_uri = "https://localhost:3000"
 
 print("\nCopy and paste the following URL into your browser to log in:")
@@ -22,7 +28,8 @@ data = {
     "grant_type": "authorization_code",
     "client_id": rest_api_key,
     "redirect_uri": redirect_uri,
-    "code": auth_code
+    "code": auth_code,
+    "client_secret": client_secret
 }
 
 response = requests.post(url, data=data)

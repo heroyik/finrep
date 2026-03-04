@@ -8,7 +8,8 @@ on:
     # KST is UTC+9. 00:00 KST = 15:00 UTC previous day.
     # Let's just run it at a reasonable time. The user asked for "once a month".
     # 00:00 UTC on the 1st of every month is fine.
-    - cron: "0 0 1 * *"
+    # Run every Sunday at 00:00 UTC (09:00 KST)
+    - cron: "0 0 * * 0"
   workflow_dispatch:
 
 jobs:
