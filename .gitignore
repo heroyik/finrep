@@ -24,3 +24,14 @@ yarn-error.log*
 .idea/
 .antigravity/
 *.blend
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Test and debug outputs
+debug_output.txt
+test_log.txt
+public/charts/*.png
+test_annotation_chart.png
