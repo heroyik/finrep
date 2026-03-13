@@ -1,0 +1,985 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily US Stock Briefing - 2026-03-14</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                --card-bg: rgba(255, 255, 255, 0.05);
+                --accent-blue: #38bdf8;
+                --accent-green: #10b981;
+                --accent-red: #f43f5e;
+                --text-main: #f8fafc;
+                --text-dim: #94a3b8;
+                --buy-bg: rgba(16, 185, 129, 0.15);
+                --buy-text: #34d399;
+                --sell-bg: rgba(244, 63, 94, 0.15);
+                --sell-text: #fb7185;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--bg-gradient);
+                color: var(--text-main);
+                margin: 0;
+                padding: 40px 20px;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                max-width: 1000px;
+                width: 100%;
+            }
+            header {
+                text-align: center;
+                margin-bottom: 25px;
+                padding: 20px;
+                border: 2px solid #0ff;
+                border-radius: 12px;
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+                background: rgba(10, 10, 10, 0.8);
+            }
+            h1 {
+                font-family: 'Orbitron', sans-serif;
+                font-weight: 900;
+                font-size: 2.2rem;
+                text-transform: uppercase;
+                background: linear-gradient(90deg, #ff00de, #00ffea);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: 0 0 15px rgba(255, 0, 222, 0.4);
+                letter-spacing: 1px;
+                margin: 0 0 10px 0;
+                line-height: 1.1;
+            }
+            .header-sub {
+                font-family: 'Orbitron', sans-serif;
+                color: #00ffea;
+                letter-spacing: 2px;
+                font-size: 0.9rem;
+            }
+            
+            /* Dashboard Section */
+            .dashboard {
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 40px;
+            }
+            .dash-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+            .dash-item {
+                background: var(--card-bg);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .dash-title {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: var(--text-dim);
+                margin-bottom: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .ticker-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+            .badge {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }
+            .badge.buy { background: var(--buy-bg); color: var(--buy-text); border: 1px solid var(--buy-text); }
+            .badge.sell { background: var(--sell-bg); color: var(--sell-text); border: 1px solid var(--sell-text); }
+            .badge.empty { background: rgba(255,255,255,0.05); color: var(--text-dim); font-weight: 400; }
+            
+            .strategy-legend {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+                line-height: 1.6;
+            }
+            .strategy-legend strong { color: var(--text-main); margin-right: 4px; }
+            .strategy-row { margin-bottom: 4px; }
+
+            /* Stock Cards */
+            .grid {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+            }
+            .card {
+                background: var(--card-bg);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 30px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+            .symbol-box {
+                display: flex;
+                flex-direction: column;
+            }
+            .symbol-row {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .symbol {
+                font-size: 2rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+            .symbol-desc {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                font-weight: 400;
+                line-height: 1;
+            }
+            .price-section {
+                display: flex;
+                gap: 40px;
+                flex-wrap: wrap;
+            }
+            .price-item {
+                display: flex;
+                flex-direction: column;
+            }
+            .price-label {
+                font-size: 0.75rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }
+            .price-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+            }
+            .price-change {
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            .up { color: var(--accent-green); }
+            .down { color: var(--accent-red); }
+            .chart-box {
+                margin: 20px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                overflow: hidden;
+                background: white;
+                cursor: zoom-in;
+            }
+            .chart-box img {
+                width: 100%;
+                display: block;
+            }
+            
+            /* News Section */
+            .news-section {
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 20px;
+            }
+            .news-header {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                text-transform: uppercase;
+                margin-bottom: 15px;
+                letter-spacing: 0.05em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .news-list {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+            .news-item {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .news-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 1.05rem;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+            .news-link:hover {
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }
+            .news-source {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                font-weight: 400;
+            }
+            .news-empty {
+                font-size: 0.9rem;
+                color: var(--text-dim);
+                font-style: italic;
+            }
+
+            /* Market Summary */
+            .summary-box {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.2rem;
+                margin-top: 15px;
+                margin-bottom: 25px;
+            }
+            .summary-header {
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-dim);
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }
+            .summary-item {
+                margin-bottom: 0.8rem;
+                font-size: 0.95rem;
+                line-height: 1.4;
+                display: flex;
+                align-items: flex-start;
+            }
+            .summary-symbol {
+                display: inline-block;
+                min-width: 60px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-right: 10px;
+            }
+            .summary-text {
+                color: var(--text-base);
+            }
+            @media (max-width: 600px) {
+                .summary-item {
+                    font-size: 0.9rem;
+                }
+                .summary-symbol {
+                    min-width: 50px;
+                }
+            }
+
+            /* Modal */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.95);
+                padding: 20px;
+                box-sizing: border-box;
+                justify-content: center;
+                align-items: center;
+            }
+            .modal-content {
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 8px;
+                object-fit: contain;
+            }
+
+            footer {
+                margin-top: 60px;
+                text-align: center;
+                color: var(--text-dim);
+                font-size: 0.875rem;
+            }
+            @media (max-width: 600px) {
+                .symbol-desc {
+                    display: block;
+                    width: 100%;
+                    margin-top: 4px;
+                }
+            }
+
+            /* Indices Grid */
+            .indices-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+            .index-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+            }
+            .index-name {
+                font-size: 0.9rem;
+                color: #38bdf8;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+            .index-price {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-main);
+                margin-bottom: 4px;
+            }
+            .index-change {
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+            
+            /* Market Commentary */
+            .commentary-section {
+                margin-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+            }
+            .highlight-item {
+                margin-bottom: 8px;
+                font-size: 0.95rem;
+                color: var(--accent-green);
+            }
+            .driver-item {
+                margin-bottom: 12px;
+                display: flex;
+                flex-direction: column;
+            }
+            .driver-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 0.95rem;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+            .driver-link:hover {
+                color: var(--accent-blue);
+                text-decoration: underline;
+            }
+            .driver-source {
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                margin-top: 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Daily US Stock Briefing</h1>
+                <div class="header-sub">2026-03-14 07:33:10 KST</div>
+                <div class="header-sub" style="font-size: 0.8rem; margin-top: 5px; color: rgba(255, 255, 255, 0.7);">Reference Market Date: 2026-03-13</div>
+            </header>
+            
+            <!-- Signal Dashboard -->
+            <div class="dashboard">
+                <div class="dash-grid">
+    
+                    <!-- 1st Buy -->
+                    <div class="dash-item">
+                        <div class="dash-title">Bullish Setup (1st Buy)</div>
+                        <div class="ticker-badges">
+        <div class="badge buy">BITU</div><div class="badge buy">ORCX</div><div class="badge buy">CRWU</div><div class="badge buy">OKLL</div>
+                        </div>
+                    </div>
+        
+                </div>
+                <div class="strategy-legend">
+                    <div class="strategy-row"><strong>1st Buy:</strong> Bearish Alignment (20 < 60 < 120*) + Close < EMA(20)</div>
+                    <div class="strategy-row"><strong>2nd Buy:</strong> 1st Buy Conditions Met + RSI(14) < 30 (Deep Oversold)</div>
+                    <div class="strategy-row"><strong>1st Sell:</strong> Bullish Alignment (20 > 60 > 120*) + Close > EMA(20) + RSI(14) > 70</div>
+                    <div class="strategy-row" style="margin-top: 10px; font-style: italic;">* Note: EMA(120) is optional for new stock listings.</div>
+                </div>
+            </div>
+    
+            <!-- Market Summary -->
+            <div class="summary-box">
+                <div class="indices-grid">
+            <div class="index-card">
+                <span class="index-name">S&P 500</span>
+                <span class="index-price">6,632.19</span>
+                <span class="index-change down">-0.61%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Dow Jones</span>
+                <span class="index-price">46,558.47</span>
+                <span class="index-change down">-0.26%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Nasdaq</span>
+                <span class="index-price">22,105.36</span>
+                <span class="index-change down">-0.93%</span>
+            </div>
+        
+            <div class="index-card">
+                <span class="index-name">Russell 2000</span>
+                <span class="index-price">2,480.05</span>
+                <span class="index-change down">-0.36%</span>
+            </div>
+        </div>
+                
+                <div class="summary-header" style="margin-top: 1rem;">
+                    <span>📝</span> MARKET COMMENTARY
+                </div>
+                <div class="commentary-section"><div class="summary-header"><span>📰</span> KEY MARKET DRIVERS</div>
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/news/live/stock-market-today-dow-sp-500-nasdaq-slide-to-cap-3rd-week-of-losses-as-100-oil-sparks-inflation-fears-200021158.html" target="_blank" class="driver-link">Stock market today: Dow, S&P 500, Nasdaq slide to cap 3rd week of losses as $100 oil sparks inflation fears</a>
+                    <span class="driver-source">Yahoo Finance</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/video/wall-street-asleep-wheel-good-144657309.html" target="_blank" class="driver-link">Wall Street is 'asleep at the wheel,' but there is 'good news'</a>
+                    <span class="driver-source">Yahoo Finance Video</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://finance.yahoo.com/video/market-uncertainty-could-lead-bond-110002102.html" target="_blank" class="driver-link">Market uncertainty could lead to bond market 'fall-out'</a>
+                    <span class="driver-source">Yahoo Finance Video</span>
+                </div>
+            
+                <div class="driver-item">
+                    <a href="https://www.fool.com/coverage/etfs/2026/03/13/broad-tech-diversification-vs-lucrative-semiconductor-exposure-is-iyw-or-soxx-the-stronger-etf-right-now/" target="_blank" class="driver-link">Broad Tech Diversification vs. Lucrative Semiconductor Exposure: Is IYW or SOXX the Stronger ETF Right Now?</a>
+                    <span class="driver-source">Motley Fool</span>
+                </div>
+            </div>
+            </div>
+
+            <div class="grid">
+    
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">BITU</span>
+                                <span class="symbol-desc">(Proshares Ultra Bitcoin ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">13.03</span>
+                                <span class="price-change up">+2.04%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">12.9</span>
+                                <span class="price-change down">-0.97%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/BITU_chart.png')">
+                        <img src="charts/BITU_chart.png" alt="BITU Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (BTC-USD Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/video/coinbase-stock-rises-bitcoin-rally-151501540.html" target="_blank" class="news-link">Coinbase stock rises on bitcoin rally, Carvana approves stock split</a>
+                                <span class="news-source">Source: Yahoo Finance Video</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.thestreet.com/crypto/innovation/solana-welcomes-avax-into-its-ecosystem" target="_blank" class="news-link">Solana welcomes AVAX into its ecosystem</a>
+                                <span class="news-source">Source: TheStreet</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.thestreet.com/crypto/personal-finance/rich-dad-poor-dad-author-sends-blunt-message-on-new-depression-warning" target="_blank" class="news-link">'Rich Dad Poor Dad' author sends blunt message on 'New Depression' warning</a>
+                                <span class="news-source">Source: TheStreet</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">ORCX</span>
+                                <span class="symbol-desc">(Defiance Daily Target 2X Long ORCL ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">10.06</span>
+                                <span class="price-change down">-5.18%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">10.0</span>
+                                <span class="price-change down">-0.6%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/ORCX_chart.png')">
+                        <img src="charts/ORCX_chart.png" alt="ORCX Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (ORCL Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/applied-optoelectronics-aaoi-mega-200-185037517.html" target="_blank" class="news-link">Applied Optoelectronics’ (AAOI) Mega $200 Million Deal Catches Analyst Attention</a>
+                                <span class="news-source">Source: Insider Monkey</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/oracle-corporation-orcl-good-stock-165236058.html" target="_blank" class="news-link">Is Oracle Corporation (ORCL) A Good Stock To Buy Now?</a>
+                                <span class="news-source">Source: Insider Monkey</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/jim-cramer-believes-latest-quarter-151603038.html" target="_blank" class="news-link">Jim Cramer Believes “This Latest Quarter Was a Big Win for Oracle”</a>
+                                <span class="news-source">Source: Insider Monkey</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">PLTG</span>
+                                <span class="symbol-desc">(Leverage Shares 2X Long PLTR Daily ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">17.32</span>
+                                <span class="price-change down">-3.35%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">17.13</span>
+                                <span class="price-change down">-1.1%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/PLTG_chart.png')">
+                        <img src="charts/PLTG_chart.png" alt="PLTG Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (PLTR Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/epstein-orbited-peter-thiel-years-210330091.html" target="_blank" class="news-link">Epstein Orbited Peter Thiel for Years Over Money, Connections and Advice</a>
+                                <span class="news-source">Source: Bloomberg</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/palantir-alliances-embed-ai-defense-191029879.html" target="_blank" class="news-link">Palantir Alliances Embed AI In Defense And Energy As Valuation Stretches</a>
+                                <span class="news-source">Source: Simply Wall St.</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/palantir-stock-falls-record-highs-172744865.html" target="_blank" class="news-link">Palantir Stock Falls From Record Highs -- Why Analysts Still See Big Upside</a>
+                                <span class="news-source">Source: GuruFocus.com</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">CRWU</span>
+                                <span class="symbol-desc">(T-REX 2X Long CRWV Daily Target ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">5.07</span>
+                                <span class="price-change up">+2.01%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">5.03</span>
+                                <span class="price-change down">-0.79%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/CRWU_chart.png')">
+                        <img src="charts/CRWU_chart.png" alt="CRWU Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (CRWV Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/morgan-stanley-sees-ai-jobs-064200487.html" target="_blank" class="news-link">Morgan Stanley sees AI jobs surge in 3 areas related to AI—even though there’s not enough revenue yet</a>
+                                <span class="news-source">Source: Fortune</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/coreweave-physicsx-deal-highlights-industrial-190626722.html" target="_blank" class="news-link">CoreWeave PhysicsX Deal Highlights Industrial AI And Heavy Compute Potential</a>
+                                <span class="news-source">Source: Simply Wall St.</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/coreweave-crwv-climbs-9-4-002533141.html" target="_blank" class="news-link">CoreWeave (CRWV) Climbs 9.4% on Product Launches, PhysicsX Deal</a>
+                                <span class="news-source">Source: Insider Monkey</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">CCUP</span>
+                                <span class="symbol-desc">(T-REX 2X Long CRCL Daily Target ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">7.41</span>
+                                <span class="price-change up">+1.93%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">7.38</span>
+                                <span class="price-change down">-0.4%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/CCUP_chart.png')">
+                        <img src="charts/CCUP_chart.png" alt="CCUP Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (CRCL Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://coingape.com/ripple-joins-mastercard-crypto-partner-program-to-advance-on-chain-payments/" target="_blank" class="news-link">Ripple Joins Mastercard Crypto Partner Program to Advance On-Chain Payments</a>
+                                <span class="news-source">Source: CoinGape</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/crypto-currents-cftc-affirms-crypto-164722645.html" target="_blank" class="news-link">Crypto Currents: CFTC affirms crypto oversight alignment with SEC</a>
+                                <span class="news-source">Source: TipRanks</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.dlnews.com/articles/markets/why-ripples-rosy-50-billion-valuation-raises-more-questions/" target="_blank" class="news-link">Why Ripple’s rosy $50bn valuation raises more questions than answers</a>
+                                <span class="news-source">Source: DLNews</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">OKLL</span>
+                                <span class="symbol-desc">(Defiance Daily Target 2X Long OKLO ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">8.75</span>
+                                <span class="price-change down">-4.06%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">8.73</span>
+                                <span class="price-change down">-0.23%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/OKLL_chart.png')">
+                        <img src="charts/OKLL_chart.png" alt="OKLL Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (OKLO Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://www.powermag.com/why-nuclear-power-is-most-viable-option-for-data-centers/" target="_blank" class="news-link">Why Nuclear Power Is Most Viable Option for Data Centers</a>
+                                <span class="news-source">Source: POWER Magazine</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/centrus-energy-oklo-haleu-hub-140959169.html" target="_blank" class="news-link">Centrus Energy Oklo HALEU Hub Plans Put Valuation In Fresh Focus</a>
+                                <span class="news-source">Source: Simply Wall St.</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.dispatch.com/story/business/energy-resource/2026/03/12/possible-joint-venture-for-nuclear-fuel-and-reactors-in-pike-county/89087417007/" target="_blank" class="news-link">Nuclear fuels partnership explored for Pike County operations</a>
+                                <span class="news-source">Source: The Columbus Dispatch</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">USD</span>
+                                <span class="symbol-desc">(ProShares Ultra Semiconductors)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">51.7</span>
+                                <span class="price-change down">-2.32%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">51.56</span>
+                                <span class="price-change down">-0.27%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/USD_chart.png')">
+                        <img src="charts/USD_chart.png" alt="USD Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (Semiconductors (NVDA, AMD, AVGO, MU) Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/live/tech-stocks-today-nvidias-huang-kicks-off-gtc-monday-adobe-ceo-stepping-down-144220997.html" target="_blank" class="news-link">Tech stocks today: Nvidia's Huang kicks off GTC Monday, Adobe CEO stepping down</a>
+                                <span class="news-source">Source: Yahoo Finance</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/live/tech-stocks-today-anthropic-says-pentagon-ban-could-cost-it-billions-meta-announces-new-ai-chips-134456659.html" target="_blank" class="news-link">Tech stocks today: Anthropic says Pentagon ban could cost it billions, Meta announces new AI chips</a>
+                                <span class="news-source">Source: Yahoo Finance</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/nvidia-focus-competition-beating-ai-100302201.html" target="_blank" class="news-link">Nvidia to focus on competition-beating AI advances at megaconference</a>
+                                <span class="news-source">Source: Reuters</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">GGLL</span>
+                                <span class="symbol-desc">(Direxion Daily GOOGL Bull 2X Shares)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">87.97</span>
+                                <span class="price-change down">-0.81%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">87.47</span>
+                                <span class="price-change down">-0.57%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/GGLL_chart.png')">
+                        <img src="charts/GGLL_chart.png" alt="GGLL Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (GOOGL Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/alphabet-inc-googl-expanding-horizons-183038480.html" target="_blank" class="news-link">Alphabet Inc. (GOOGL)’s Expanding Horizons: AI, Cloud, and Broadband Growth</a>
+                                <span class="news-source">Source: Insider Monkey</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://tech.yahoo.com/ai/gemini/articles/google-says-whisk-moving-flow-174528396.html" target="_blank" class="news-link">Google says Whisk moving to Flow on April 30</a>
+                                <span class="news-source">Source: TipRanks</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/sector-tech-stocks-mixed-friday-174213250.html" target="_blank" class="news-link">Sector Update: Tech Stocks Mixed Friday Afternoon</a>
+                                <span class="news-source">Source: MT Newswires</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="card">
+                    <div class="card-header">
+                        <div class="symbol-box">
+                            <div class="symbol-row">
+                                <span class="symbol">NEBX</span>
+                                <span class="symbol-desc">(Tradr 2X Long NBIS Daily ETF)</span>
+                            </div>
+                        </div>
+                        <div class="price-section">
+                            <div class="price-item">
+                                <span class="price-label">At Close</span>
+                                <span class="price-value">41.0</span>
+                                <span class="price-change up">+8.81%</span>
+                            </div>
+        
+                            <div class="price-item">
+                                <span class="price-label">After Hours</span>
+                                <span class="price-value">40.8</span>
+                                <span class="price-change down">-0.49%</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box" onclick="openModal('charts/NEBX_chart.png')">
+                        <img src="charts/NEBX_chart.png" alt="NEBX Chart">
+                    </div>
+                    
+                    <div class="news-section">
+                        <div class="news-header">
+                            <span>📰</span> Related News & Market (NBIS Insights)
+                        </div>
+                        <div class="news-list">
+        
+                            <div class="news-item">
+                                <a href="https://247wallst.com/investing/2026/03/13/nvidia-had-another-helping-of-nebius-stock-should-you-follow-jensen-huangs-lead/" target="_blank" class="news-link">Nvidia Had Another Helping of Nebius Stock. Should You Follow Jensen Huang’s Lead?</a>
+                                <span class="news-source">Source: 24/7 Wall St.</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://www.barchart.com/story/news/722633/as-nvidia-invests-2-billion-in-nebius-should-you-buy-sell-or-hold-nbis-stock" target="_blank" class="news-link">As Nvidia Invests $2 Billion in Nebius, Should You Buy, Sell, or Hold NBIS Stock?</a>
+                                <span class="news-source">Source: Barchart</span>
+                            </div>
+            
+                            <div class="news-item">
+                                <a href="https://finance.yahoo.com/news/midday-fly-iea-release-400m-160056411.html" target="_blank" class="news-link">Midday Fly By: IEA to release 400M oil barrels, Oracle reports Q3 beat</a>
+                                <span class="news-source">Source: TipRanks</span>
+                            </div>
+            
+                        </div>
+                    </div>
+                </div>
+        
+            </div>
+            <footer>
+                <p>Crafted by Google Antigravity based on <a href="https://heroyik.github.io" target="_blank" style="color: inherit; text-decoration: underline;">nIcK</a>'s trading strategy</p>
+            </footer>
+        </div>
+
+        <div id="modal" class="modal" onclick="closeModal()">
+            <img class="modal-content" id="modalImg">
+        </div>
+
+        <script>
+            function openModal(src) {
+                document.getElementById('modal').style.display = 'flex';
+                document.getElementById('modalImg').src = src;
+            }
+            function closeModal() {
+                document.getElementById('modal').style.display = 'none';
+            }
+        </script>
+    </body>
+    </html>
+    
