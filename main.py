@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # Load environment variables (for local testing)
 load_dotenv()
 
-TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL", "USD", "GGLL"]
+TICKERS = ["BITU", "ORCX", "PLTG", "CRWU", "CCUP", "OKLL", "USD", "GGLL", "NEBX"]
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REFRESH_TOKEN = os.getenv("KAKAO_REFRESH_TOKEN")
@@ -32,7 +32,8 @@ UNDERLYING_MAP = {
     "CCUP": "CRCL",
     "OKLL": "OKLO",
     "USD": ["NVDA", "AMD", "AVGO", "MU"],
-    "GGLL": "GOOGL"
+    "GGLL": "GOOGL",
+    "NEBX": "NBIS"
 }
 
 # 추천 무료 뉴스 매체 (사용자 요청: AP, CNBC, Reuters, Yahoo, Investing, Stock Analysis)

@@ -6,7 +6,7 @@ FinRep is an automated, high-precision system designed to empower investors with
 
 ## 🚀 Key Features
 
-- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL, USD, GGLL).
+- **Data Collection**: Fetches historical data using `yfinance` for tracked tickers (BITU, ORCX, PLTG, CRWU, CCUP, OKLL, USD, GGLL, NEBX).
 - **Dynamic Signal Dashboard**: Instantly highlights assets triggering specific trading setups:
   - **1st Buy**: Bearish Alignment (20 < 60 < 120*) + Close < EMA(20). (*EMA 120 is optional for new listings). If 2nd Buy conditions are met, the ticker is moved to the 2nd Buy list.
   - **2nd Buy**: 1st Buy condition met + RSI < 30 (Deep Oversold). Categorized exclusively as 2nd Buy.
@@ -150,4 +150,4 @@ MIT License.
 
 ## 👨‍💻 Credits
 
-Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-03-04, Revision: 2.1.0)
+Crafted by **antigravity** based on [**nIcK**](mailto:heroyik@gmail.com)'s investment strategy. Includes specialized market monitoring scripts for reliable automation. (Updated: 2026-03-13, Revision: 2.2.0)
