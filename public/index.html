@@ -1,213 +1,212 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="10; url=https://heroyik.gitlab.io/finrep/">
-    <title>Finrep moved to GitLab</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinRep - GitLab era</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';"
+    />
+    <meta http-equiv="refresh" content="10; url=https://heroyik.gitlab.io/finrep/" />
     <style>
-        :root {
-            --bg: #12161c;
-            --panel: #161a21;
-            --line: #3a404b;
-            --text: #f5f1e8;
-            --muted: #d7d0c5;
-            --green: #46eba1;
-            --orange: #fca326;
-            --orange-dark: #e24329;
-            --shadow: rgba(70, 235, 161, 0.18);
-        }
+      :root {
+        color-scheme: dark;
+        --bg: #101114;
+        --panel: #181a20;
+        --text: #f5f2ea;
+        --muted: #b8b1a3;
+        --accent: #48f0a4;
+        --accent-strong: #1fd67f;
+        --line: rgba(245, 242, 234, 0.18);
+      }
 
-        * {
-            box-sizing: border-box;
-        }
+      * {
+        box-sizing: border-box;
+      }
 
-        html,
-        body {
-            min-height: 100%;
-        }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(72, 240, 164, 0.16), transparent 32%),
+          linear-gradient(135deg, #101114 0%, #17181d 52%, #0f1412 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
 
-        body {
-            margin: 0;
-            padding: 6px;
-            color: var(--text);
-            font-family: "Inter", Arial, sans-serif;
-            background:
-                radial-gradient(circle at 0 0, rgba(70, 235, 161, 0.1), transparent 28rem),
-                var(--bg);
-        }
+      main {
+        width: min(100%, 680px);
+        padding: clamp(28px, 6vw, 56px);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(24, 26, 32, 0.88);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+      }
 
-        main {
-            min-height: calc(100vh - 12px);
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            background: linear-gradient(145deg, #171b22 0%, #12161c 68%);
-            box-shadow: inset 0 0 0 1px rgba(245, 241, 232, 0.04);
-        }
+      p {
+        margin: 0;
+      }
 
-        .wrap {
-            width: min(1160px, 100%);
-            padding: clamp(40px, 7vw, 90px);
-        }
+      .eyebrow {
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
 
-        .eyebrow {
-            margin: 0 0 34px;
-            color: var(--green);
-            font-size: clamp(1rem, 2.1vw, 1.6rem);
-            font-weight: 800;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-        }
+      h1 {
+        margin: 18px 0 18px;
+        max-width: 11ch;
+        font-size: clamp(3rem, 9vw, 6.25rem);
+        line-height: 0.92;
+        letter-spacing: 0;
+      }
 
-        h1 {
-            margin: 0 0 24px;
-            color: var(--text);
-            font-size: clamp(4rem, 10vw, 8.4rem);
-            font-weight: 900;
-            line-height: 0.95;
-            letter-spacing: 0;
-        }
+      .lede {
+        max-width: 58ch;
+        color: var(--muted);
+        font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+        line-height: 1.5;
+      }
 
-        .copy {
-            max-width: 980px;
-            margin: 0;
-            color: var(--muted);
-            font-size: clamp(1.35rem, 3vw, 2.1rem);
-            font-weight: 500;
-            line-height: 1.55;
-        }
+      .icon-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 26px;
+        color: var(--text);
+      }
 
-        .copy strong {
-            color: var(--text);
-            font-weight: 800;
-        }
+      .brand-icon {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 auto;
+      }
 
-        .route {
-            display: flex;
-            align-items: center;
-            gap: clamp(28px, 6vw, 56px);
-            margin: 56px 0 54px;
-        }
+      .brand-arrow {
+        width: clamp(54px, 12vw, 86px);
+        height: 24px;
+        flex: 0 0 auto;
+        color: var(--accent);
+        filter: drop-shadow(0 0 12px rgba(72, 240, 164, 0.28));
+      }
 
-        .brand-mark {
-            width: clamp(64px, 9vw, 88px);
-            height: clamp(64px, 9vw, 88px);
-            flex: 0 0 auto;
-        }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+        margin-top: 30px;
+      }
 
-        .arrow {
-            width: clamp(116px, 18vw, 160px);
-            height: clamp(36px, 5vw, 54px);
-            filter: drop-shadow(0 0 14px var(--shadow));
-        }
+      .button {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        padding: 0 20px;
+        background: var(--accent);
+        color: #08110c;
+        font-weight: 900;
+        text-decoration: none;
+        transition:
+          background 160ms ease,
+          transform 160ms ease;
+      }
 
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 96px;
-            min-width: min(424px, 100%);
-            padding: 24px 40px;
-            border: 0;
-            border-radius: 14px;
-            color: #061015;
-            background: var(--green);
-            font-size: clamp(1.35rem, 2.5vw, 1.9rem);
-            font-weight: 900;
-            text-decoration: none;
-            box-shadow: 0 18px 42px rgba(70, 235, 161, 0.18);
-            transition: transform 160ms ease, box-shadow 160ms ease;
-        }
+      .button:focus-visible,
+      .button:hover {
+        background: var(--accent-strong);
+        transform: translateY(-1px);
+      }
 
-        .button:hover,
-        .button:focus-visible {
-            transform: translateY(-2px);
-            box-shadow: 0 22px 52px rgba(70, 235, 161, 0.24);
-            outline: none;
-        }
-
-        .note {
-            margin: 32px 0 0;
-            color: var(--muted);
-            font-size: clamp(1.1rem, 2.4vw, 1.75rem);
-            line-height: 1.45;
-        }
-
-        @media (max-width: 620px) {
-            body {
-                padding: 0;
-            }
-
-            main {
-                min-height: 100vh;
-                border-radius: 0;
-                border-left: 0;
-                border-right: 0;
-            }
-
-            .wrap {
-                padding: 34px 24px;
-            }
-
-            .route {
-                gap: 18px;
-                margin: 42px 0;
-            }
-
-            .button {
-                width: 100%;
-                min-height: 76px;
-                padding: 20px 24px;
-            }
-        }
+      .note {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
     </style>
-</head>
-<body>
+  </head>
+
+  <body>
     <main>
-        <section class="wrap" aria-label="Finrep moved to GitLab">
-            <p class="eyebrow">New spot just dropped</p>
-            <h1>GitLab era.</h1>
-            <p class="copy">
-                Big love, GitHub. You held it down. As of June 10, 2026, heroyik is
-                pulling up at <strong>heroyik.gitlab.io</strong> now. Chill for 10 seconds and I will
-                slide you over.
-            </p>
-
-            <div class="route" aria-hidden="true">
-                <svg class="brand-mark" viewBox="0 0 96 96" role="img" aria-label="GitHub">
-                    <circle cx="48" cy="48" r="48" fill="#f5f1e8"/>
-                    <path fill="#161a21" d="M48 16c-17.8 0-32.2 14.4-32.2 32.2 0 14.2 9.2 26.3 22 30.6 1.6.3 2.2-.7 2.2-1.6v-6c-9 2-10.9-3.8-10.9-3.8-1.5-3.7-3.6-4.7-3.6-4.7-2.9-2 .2-2 .2-2 3.2.2 5 3.3 5 3.3 2.9 4.9 7.5 3.5 9.3 2.7.3-2.1 1.1-3.5 2-4.3-7.2-.8-14.7-3.6-14.7-15.9 0-3.5 1.3-6.4 3.3-8.7-.3-.8-1.4-4.1.3-8.5 0 0 2.7-.9 8.9 3.3 2.6-.7 5.3-1.1 8.1-1.1 2.7 0 5.5.4 8.1 1.1 6.1-4.2 8.8-3.3 8.8-3.3 1.8 4.4.7 7.7.3 8.5 2.1 2.3 3.3 5.2 3.3 8.7 0 12.4-7.6 15.1-14.8 15.9 1.2 1 2.2 3 2.2 6v8.8c0 .9.6 1.9 2.2 1.6 12.8-4.3 22-16.4 22-30.6C80.2 30.4 65.8 16 48 16Z"/>
-                </svg>
-
-                <svg class="arrow" viewBox="0 0 170 56" role="img" aria-label="To">
-                    <path d="M4 32C49 7 93 21 151 31" fill="none" stroke="#46eba1" stroke-width="7" stroke-linecap="round"/>
-                    <path d="M126 12l35 22-39 12" fill="none" stroke="#46eba1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-
-                <svg class="brand-mark" viewBox="0 0 96 96" role="img" aria-label="GitLab">
-                    <path fill="var(--orange)" d="M48 82 18.6 60.7a5.7 5.7 0 0 1-2.1-6.4l6.8-20.9h15.1L48 82Z"/>
-                    <path fill="#fc6d26" d="M48 82 38.4 33.4h19.2L48 82Z"/>
-                    <path fill="var(--orange)" d="m48 82 29.4-21.3a5.7 5.7 0 0 0 2.1-6.4l-6.8-20.9H57.6L48 82Z"/>
-                    <path fill="var(--orange-dark)" d="M23.3 33.4 30.4 12c.8-2.5 4.3-2.5 5.1 0l2.9 21.4H23.3Zm34.3 0L60.5 12c.8-2.5 4.3-2.5 5.1 0l7.1 21.4H57.6Z"/>
-                </svg>
-            </div>
-
-            <a class="button" href="https://heroyik.gitlab.io/finrep/">Pull up on GitLab now</a>
-            <p class="note">Ten seconds is optional. The new spot is already live.</p>
-        </section>
+      <p class="eyebrow">New spot just dropped</p>
+      <h1>GitLab era.</h1>
+      <p class="lede">
+        Big love, GitHub. You held it down. As of June 10, 2026,
+        FinRep is pulling up at <strong>heroyik.gitlab.io/finrep</strong> now. Chill
+        for 10 seconds and I will slide you over.
+      </p>
+      <div class="icon-row" aria-label="Moving from GitHub to GitLab">
+        <svg
+          class="brand-icon"
+          viewBox="0 0 16 16"
+          aria-label="GitHub"
+          role="img"
+        >
+          <path
+            fill="currentColor"
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"
+          />
+        </svg>
+        <svg
+          class="brand-arrow"
+          viewBox="0 0 96 28"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M4 16C24 4 47 4 72 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-width="3"
+          />
+          <path
+            d="M67 7 82 17 65 23"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+          />
+        </svg>
+        <svg
+          class="brand-icon"
+          viewBox="0 0 36 36"
+          aria-label="GitLab"
+          role="img"
+        >
+          <path
+            fill="#e24329"
+            d="M7.8 11.2 10.7 2.4c.3-.9 1.6-.9 1.9 0l2.8 8.8H7.8Zm12.8 0 2.8-8.8c.3-.9 1.6-.9 1.9 0l2.9 8.8h-7.6Z"
+          />
+          <path
+            fill="#fc6d26"
+            d="M18 33.2 7.8 11.2H1.6L18 33.2Zm0 0 10.2-22h6.2L18 33.2Z"
+          />
+          <path
+            fill="#fca326"
+            d="M1.6 11.2h6.2L18 33.2 2.3 21.8c-.7-.5-1-1.4-.7-2.2l3-8.4Zm32.8 0h-6.2L18 33.2l15.7-11.4c.7-.5 1-1.4.7-2.2l-3-8.4Z"
+          />
+        </svg>
+      </div>
+      <div class="actions">
+        <a
+          class="button"
+          href="https://heroyik.gitlab.io/finrep/"
+        >
+          Pull up on GitLab now
+        </a>
+        <p class="note">Ten seconds is optional. The new spot is already live.</p>
+      </div>
     </main>
-
-    <script>
-        const destination = "https://heroyik.gitlab.io/finrep/";
-
-        window.setTimeout(() => {
-            window.location.assign(destination);
-        }, 10000);
-    </script>
-</body>
+  </body>
 </html>
